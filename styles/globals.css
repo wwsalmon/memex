@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+    @apply text-gray-900;
+}
+
 .up-spinner {
     position: absolute;
     top: calc(50% - 0.5rem);
