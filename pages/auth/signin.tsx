@@ -1,43 +1,22 @@
 import {GetServerSideProps} from "next";
-import {getSession, signOut, useSession} from "next-auth/client";
-import {useEffect} from "react";
-import Link from "next/link";
+import {getSession} from "next-auth/client";
 import SEO from "../../components/SEO";
 import SignInButton from "../../components/SignInButton";
-import {UserModel} from "../../models/User";
-import dbConnect from "../../utils/dbConnect";
+import {ssrRedirect} from "next-response-helpers";
 
-export default function SignIn({notAllowed}: { notAllowed: boolean }) {
-    const [session, loading] = useSession();
-
-    useEffect(() => {
-        if (session && notAllowed) signOut();
-    }, [loading]);
-
+export default function Signin({}: {}) {
     return (
         <>
             <SEO title="Sign in"/>
-            <h1>Sign in</h1>
-            {notAllowed && (
-                <span>No account found for the given email. <Link href="/"><a>Sign up for the waitlist</a></Link> to get early access</span>
-            )}
-            <p>If you already have a YourApp account, click below to sign in.</p>
+            <h1>Welcome to Memex</h1>
+            <p>Click the button below to sign in to or sign up for Memex with your Google account.</p>
             <SignInButton/>
         </>
     );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-    const session = await getSession(context);
+export const getServerSideProps: GetServerSideProps = async ({req, res}) => {
+    const session = await getSession({req});
 
-    if (!session) return {props: {}};
-
-    try {
-        await dbConnect();
-        const thisUser = await UserModel.findOne({email: session.user.email});
-        return thisUser ? {redirect: {permanent: false, destination: "/app"}} : {props: {notAllowed: true}};
-    } catch (e) {
-        console.log(e);
-        return {notFound: true};
-    }
+    return session ? ssrRedirect("/app") : {props: {}};
 };

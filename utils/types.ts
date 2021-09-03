@@ -1,19 +1,12 @@
-export interface UserObj {
-    email: string,
-    username: string,
-    name: string,
-    image: string,
+export interface NodeObj {
+    urlName: string,
+    body: string,
+    type: NoteObjTypeOpts,
+    title?: string,
+    image?: string,
 }
 
-export interface SessionObj {
-    user: {
-        name: string,
-        email: string,
-        image: string,
-    },
-    userId: string,
-    username: string,
-}
+type NoteObjTypeOpts = "note" | "bucket" | "timeline" | "blog" | "comment" | "user";
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
 export type DatedObj<T extends {}> = T & {
