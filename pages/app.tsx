@@ -3,6 +3,20 @@ import {getSession} from "next-auth/client";
 import {ssrRedirect} from "next-response-helpers";
 import Container from "../components/Container";
 import Button from "../components/Button";
+import Card from "../components/style/Card";
+import H2 from "../components/style/H2";
+import Badge from "../components/style/Badge";
+
+const ProjectCard = ({name, description, badgeLetter, badgeNumber}: {name: string, description: string, badgeLetter: string, badgeNumber: number}) => (
+    <Card>
+        <H2>{name}</H2>
+        <p className="text-gray-500">{description}</p>
+        <div className="flex items-center mt-4 text-sm">
+            <Badge>{badgeLetter}</Badge>
+            <div className="ml-2 text-gray-500"><span>{badgeNumber}</span></div>
+        </div>
+    </Card>
+);
 
 export default function App() {
     return (
@@ -14,14 +28,10 @@ export default function App() {
                 </Button>
             </div>
             <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white rounded-md shadow-sm p-4 hover:shadow-md transition cursor-pointer">
-                    <h2 className="font-bold">Question Journal</h2>
-                    <p className="text-gray-500">Journal of "bad questions"</p>
-                    <div className="flex items-center mt-4 text-sm">
-                        <div className="w-6 h-6 bg-purple-300 rounded-md text-white flex items-center justify-center font-medium"><span>C</span></div>
-                        <div className="ml-2 text-gray-500"><span>2</span></div>
-                    </div>
-                </div>
+                <ProjectCard name="Question Journal" description="Journal of bad questions" badgeLetter="C" badgeNumber={5}/>
+                <ProjectCard name="Question Journal" description="Journal of bad questions" badgeLetter="C" badgeNumber={5}/>
+                <ProjectCard name="Question Journal" description="Journal of bad questions" badgeLetter="C" badgeNumber={5}/>
+                <ProjectCard name="Question Journal" description="Journal of bad questions" badgeLetter="C" badgeNumber={5}/>
             </div>
         </Container>
     );
