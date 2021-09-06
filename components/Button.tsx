@@ -1,32 +1,30 @@
-import {ReactNode} from "react";
 import Link from "next/link";
 
-interface ButtonPropsBase {
-    children: ReactNode,
-    className?: string,
-    disabled?: boolean,
-}
+export default function Button(props: (
+    React.HTMLProps<HTMLButtonElement> | React.HTMLProps<HTMLAnchorElement>)
+    & {isLoading?: boolean, containerClassName?: string}) {
+    const {href, isLoading, children, containerClassName} = props;
 
-interface ButtonPropsLink extends ButtonPropsBase {
-    href: string,
-    onClick?: never,
-}
-
-interface ButtonPropsButton extends ButtonPropsBase {
-    href?: never,
-    onClick: () => any,
-}
-
-type ButtonProps = ButtonPropsLink | ButtonPropsButton;
-
-export default function Button({children, href, onClick, className, disabled}: ButtonProps) {
-    const classNames = " " + className;
-
-    return href ? (
-        <Link href={href}>
-            <a className={classNames}>{children}</a>
-        </Link>
-    ) : (
-        <button className={classNames} onClick={onClick} disabled={disabled}>{children}</button>
-    );
+    return (
+        <div className={`relative inline-block ${containerClassName || ""}`}>
+            {href ? (
+                <Link href={href}>
+                    {/* @ts-ignore */}
+                    <a {...props}>
+                        <div className={isLoading ? "invisible" : ""}>
+                            {children}
+                        </div>
+                    </a>
+                </Link>
+            ) : (
+                // @ts-ignore
+                <button {...props}>
+                    <div className={isLoading ? "invisible" : ""}>
+                        {children}
+                    </div>
+                </button>
+            )}
+            {isLoading && <div className="up-spinner"/>}
+        </div>
+    )
 }

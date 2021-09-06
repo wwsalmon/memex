@@ -23,7 +23,11 @@ export default function App() {
         <Container width="5xl" padding={12} className="bg-gray-100 rounded-lg shadow-md py-12">
             <div className="flex items-center mb-8">
                 <h1 className="text-3xl font-bold">Home</h1>
-                <Button onClick={() => null} className="bg-purple-500 hover:bg-purple-700 py-2 px-4 rounded-md ml-auto text-white">
+                <Button
+                    onClick={() => null}
+                    className="bg-purple-500 hover:bg-purple-700 py-2 px-3 rounded text-white text-sm hover:shadow-inner transition font-medium tracking-wide"
+                    containerClassName="ml-auto"
+                >
                     + New category
                 </Button>
             </div>

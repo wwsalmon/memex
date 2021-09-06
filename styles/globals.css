@@ -4,6 +4,7 @@
 
 body {
     @apply text-gray-900;
+    font-family: "Manrope", sans-serif;
 }
 
 .up-spinner {
