@@ -1,13 +1,13 @@
-export default function H2(props: React.HTMLProps<HTMLHeadingElement>) {
+export default function H3(props: React.HTMLProps<HTMLHeadingElement>) {
     let newProps = {...props};
     delete newProps.className;
 
     return (
-        <h2
+        <h3
             className={"font-bold " + props.className}
-            {...props}
+            {...newProps}
         >
             {props.children}
-        </h2>
+        </h3>
     );
 }

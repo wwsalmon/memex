@@ -6,7 +6,7 @@ export default function Modal({isOpen, setIsOpen, children}: {
     setIsOpen: Dispatch<SetStateAction<boolean>>,
     children: ReactNode,
 }) {
-    const modalClasses = "top-24 left-1/2 fixed bg-white p-4 rounded-md shadow-xl mx-4";
+    const modalClasses = "top-24 left-1/2 fixed bg-white p-4 rounded-lg shadow-2xl border mx-4 focus:outline-none";
 
     return (
         <ReactModal

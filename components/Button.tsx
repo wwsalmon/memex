@@ -1,12 +1,13 @@
 import Link from "next/link";
 
-export default function Button(props: (
-    React.HTMLProps<HTMLButtonElement> | React.HTMLProps<HTMLAnchorElement>)
-    & {isLoading?: boolean, containerClassName?: string}) {
-    const {href, isLoading, children, containerClassName} = props;
+export type ButtonProps = (React.HTMLProps<HTMLButtonElement> | React.HTMLProps<HTMLAnchorElement>)
+& {isLoading?: boolean, containerClassName?: string};
+
+export default function Button(props: ButtonProps) {
+    const {href, isLoading, children, containerClassName, disabled} = props;
 
     return (
-        <div className={`relative inline-block ${containerClassName || ""}`}>
+        <div className={`relative inline-block ${containerClassName || ""} ${disabled ? "opacity-25 cursor-not-allowed" : ""}`}>
             {href ? (
                 <Link href={href}>
                     {/* @ts-ignore */}
@@ -19,7 +20,7 @@ export default function Button(props: (
             ) : (
                 // @ts-ignore
                 <button {...props}>
-                    <div className={isLoading ? "invisible" : ""}>
+                    <div className={(isLoading ? "invisible " : "") + (disabled ? "cursor-not-allowed" : "")}>
                         {children}
                     </div>
                 </button>
