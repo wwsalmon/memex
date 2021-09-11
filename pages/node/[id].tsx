@@ -21,6 +21,9 @@ import NewNodeButtonAndModal from "../../components/NewNodeButtonAndModal";
 import NodeCard from "../../components/NodeCard";
 import * as mongoose from "mongoose";
 import {ParentLinkModel} from "../../models/ParentLink";
+import {format} from "date-fns";
+import Badge from "../../components/style/Badge";
+import getLetterFromType from "../../utils/getLetterFromType";
 
 const NodeCrumb = ({id}: {id: string}) => {
     const {data, error} = useSWR(`/api/node?id=${id}`);
@@ -113,6 +116,11 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks:
                             </Button>
                         )}
                     </div>
+                </div>
+                <div className="my-6 flex items-center">
+                    <p>Created {format(new Date(thisNode.createdAt), "MMMM d, yyyy")}</p>
+                    <Badge className="ml-6"><Badge>{getLetterFromType(thisNode.type)}</Badge></Badge>
+                    <div className="ml-2 text-gray-500"><span>{data && data.nodes.length}</span></div>
                     <NewNodeButtonAndModal
                         router={router}
                         addToast={addToast}
