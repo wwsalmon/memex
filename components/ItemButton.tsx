@@ -3,7 +3,14 @@ import Button from "./Button";
 
 export type ItemButtonColorOpts = "purple" | "pink" | "blue" | "black";
 
-export default function ItemButton({name, description, disabled, color = "purple", onClick}: {name: string, description: string, disabled?: boolean, color?: ItemButtonColorOpts, onClick: () => any}) {
+export default function ItemButton({name, description, disabled, isLoading, color = "purple", onClick}: {
+    name: string,
+    description: string,
+    disabled?: boolean,
+    isLoading?: boolean,
+    color?: ItemButtonColorOpts,
+    onClick: () => any
+}) {
     const colorClasses = {
         purple: "bg-purple-500 hover:bg-purple-700",
         pink: "bg-pink-500 hover:bg-pink-700",
@@ -16,6 +23,7 @@ export default function ItemButton({name, description, disabled, color = "purple
             className={`rounded px-3 py-4 ${colorClasses} transition text-white w-full text-left leading-tight h-full`}
             onClick={onClick}
             disabled={disabled}
+            isLoading={isLoading}
         >
             <H3 className="mb-2">{name}</H3>
             <p>{description}</p>

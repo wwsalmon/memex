@@ -25,7 +25,7 @@ const handler: NextApiHandler = nextApiEndpoint(
 
             await thisNote.save();
 
-            res200(res, {thisNote});
+            res200(res, {node: thisNote});
         } else {
             let newNode = {
                 title: title || "",
@@ -52,10 +52,12 @@ const handler: NextApiHandler = nextApiEndpoint(
 
             await ParentLinkModel.create(newLink);
 
-            return res200(res, {newNodeObj});
+            return res200(res, {node: newNodeObj});
         }
     },
     async function deleteFunction(req, res, session, thisUser) {
 
     },
 )
+
+export default handler;

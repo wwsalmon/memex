@@ -15,6 +15,10 @@ import {NodeModel} from "../models/Node";
 import getUserOrMakeNew from "../utils/getUserOrMakeNew";
 import {DatedObj, NodeObj} from "../utils/types";
 import cleanForJSON from "../utils/cleanForJSON";
+import axios from "axios";
+import {useRouter} from "next/router";
+import {useToasts} from "react-toast-notifications";
+import showToast from "../utils/showToast";
 
 const ProjectCard = ({name, description, badgeLetter, badgeNumber}: {name: string, description: string, badgeLetter: string, badgeNumber: number}) => (
     <Card>
@@ -28,7 +32,26 @@ const ProjectCard = ({name, description, badgeLetter, badgeNumber}: {name: strin
 );
 
 export default function App({thisUser}: {thisUser: DatedObj<NodeObj>}) {
+    const router = useRouter();
+    const {addToast} = useToasts();
     const [newCatOpen, setNewCatOpen] = useState<boolean>(false);
+    const [newCatLoading, setNewCatLoading] = useState<boolean>(false);
+
+    function newNote(type: "note" | "bucket" | "timeline" | "blog") {
+        setNewCatLoading(true);
+
+        axios.post("/api/node", {
+            parentId: thisUser._id,
+            type: type,
+        }).then(res => {
+            setNewCatLoading(false);
+            router.push(`/node/${res.data.node._id}`);
+            showToast(true, "New node created", addToast);
+        }).catch(e => {
+            setNewCatLoading(false);
+            showToast(false, e.message, addToast);
+        });
+    }
 
     return (
         <Container width="5xl" padding={8} className="bg-gray-100 rounded-md border py-8">
@@ -47,10 +70,34 @@ export default function App({thisUser}: {thisUser: DatedObj<NodeObj>}) {
                         <H3>Note</H3>
                         <H3>Container</H3>
                         <H3 className="col-span-2">Time series</H3>
-                        <ItemButton name="Note (n)" description="Write down your ideas" onClick={() => null} color="pink" disabled={true}/>
-                        <ItemButton name="Bucket (b)" description="Container of loose notes" onClick={() => null} color="purple"/>
-                        <ItemButton name="Timeline (t)" description="A Twitter-like feed of updates" onClick={() => null} color="blue"/>
-                        <ItemButton name="Blog (l)" description="A more substantial feed" onClick={() => null} color="black"/>
+                        <ItemButton
+                            name="Note (n)" description="Write down your ideas"
+                            onClick={() => newNote("note")}
+                            color="pink"
+                            disabled={true}
+                            isLoading={newCatLoading}
+                        />
+                        <ItemButton
+                            name="Bucket (b)"
+                            description="Container of loose notes"
+                            onClick={() => newNote("bucket")}
+                            color="purple"
+                            isLoading={newCatLoading}
+                        />
+                        <ItemButton
+                            name="Timeline (t)"
+                            description="A Twitter-like feed of updates"
+                            onClick={() => newNote("timeline")}
+                            color="blue"
+                            isLoading={newCatLoading}
+                        />
+                        <ItemButton
+                            name="Blog (l)"
+                            description="A more substantial feed"
+                            onClick={() => newNote("blog")}
+                            color="black"
+                            isLoading={newCatLoading}
+                        />
                     </div>
                 </Modal>
             </div>
