@@ -14,10 +14,15 @@ import {getInputStateProps} from "react-controlled-component-helpers";
 import axios from "axios";
 import showToast from "../../utils/showToast";
 import {useToasts} from "react-toast-notifications";
-import useSWR from "swr";
+import useSWR, {SWRResponse} from "swr";
+import fetcher from "../../utils/fetcher";
+import {useRouter} from "next/router";
+import NewNodeButtonAndModal from "../../components/NewNodeButtonAndModal";
+import NodeCard from "../../components/NodeCard";
 
 export default function Node(props: {thisNode: DatedObj<NodeObj>, thisUser: DatedObj<NodeObj>}) {
     const {addToast} = useToasts();
+    const router = useRouter();
 
     const [thisNode, setThisNode] = useState<DatedObj<NodeObj>>(props.thisNode);
     const [isEditTitle, setIsEditTitle] = useState<boolean>(!(thisNode.title || thisNode.body));
@@ -43,9 +48,11 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisUser: Date
         });
     }
 
+    const {data, error}: SWRResponse<{ nodes: DatedObj<NodeObj>[] }, any> = useSWR(`/api/node?parentId=${thisNode._id}`, fetcher);
+
     return (
         <Container width="5xl" padding={8} className="bg-gray-100 rounded-md border py-8">
-            <div className="flex items-center mb-8">
+            <div className="flex mb-8">
                 <div>
                     {isEditTitle ? (
                         <>
@@ -76,6 +83,17 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisUser: Date
                         </Button>
                     )}
                 </div>
+                <NewNodeButtonAndModal
+                    router={router}
+                    addToast={addToast}
+                    parentId={thisNode._id}
+                    className="ml-auto"
+                />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+                {data && data.nodes.map(node => (
+                    <NodeCard node={node}/>
+                ))}
             </div>
         </Container>
     )
@@ -89,7 +107,7 @@ export const getServerSideProps: GetServerSideProps = async ({req, query, res}) 
 
         if (!thisNode) return ssr404;
 
-        let props = {thisNode: cleanForJSON(thisNode)};
+        let props = {thisNode: cleanForJSON(thisNode), key: thisNode._id.toString()};
 
         const session = await getSession({req});
 

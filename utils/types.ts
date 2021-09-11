@@ -1,12 +1,12 @@
 export interface NodeObj {
     urlName: string,
     body: string,
-    type: NoteObjTypeOpts,
+    type: NodeObjTypeOpts,
     title?: string,
     image?: string,
 }
 
-type NoteObjTypeOpts = "note" | "bucket" | "timeline" | "blog" | "comment" | "user";
+export type NodeObjTypeOpts = "note" | "bucket" | "timeline" | "blog" | "comment" | "user";
 
 export interface ParentLinkObj {
     parentId: string,
