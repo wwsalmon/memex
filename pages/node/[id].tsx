@@ -121,12 +121,14 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks:
                     <p>Created {format(new Date(thisNode.createdAt), "MMMM d, yyyy")}</p>
                     <Badge className="ml-6"><Badge>{getLetterFromType(thisNode.type)}</Badge></Badge>
                     <div className="ml-2 text-gray-500"><span>{data && data.nodes.length}</span></div>
-                    <NewNodeButtonAndModal
-                        router={router}
-                        addToast={addToast}
-                        parentId={thisNode._id}
-                        className="ml-auto"
-                    />
+                    {thisNode.type !== "note" && (
+                        <NewNodeButtonAndModal
+                            router={router}
+                            addToast={addToast}
+                            parentId={thisNode._id}
+                            className="ml-auto"
+                        />
+                    )}
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                     {data && data.nodes.map(node => (
