@@ -20,11 +20,11 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisUser: Date
     const {addToast} = useToasts();
 
     const [thisNode, setThisNode] = useState<DatedObj<NodeObj>>(props.thisNode);
-    const [isEditTitle, setIsEditTitle] = useState<boolean>(false);
+    const [isEditTitle, setIsEditTitle] = useState<boolean>(!(thisNode.title || thisNode.body));
     const [isEditTitleLoading, setIsEditTitleLoading] = useState<boolean>(false);
-    const [title, setTitle] = useState<string>(thisNode.title || "Untitled");
+    const [title, setTitle] = useState<string>(thisNode.title || `Untitled ${thisNode.type}`);
 
-    const prevTitle = thisNode.title || "Untitled";
+    const prevTitle = thisNode.title || `Untitled ${thisNode.type}`;
 
     function onSubmitEditTitle() {
         setIsEditTitleLoading(true);
@@ -72,7 +72,7 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisUser: Date
                         </>
                     ) : (
                         <Button className="-m-2 p-2 hover:bg-gray-200 transition" onClick={() => setIsEditTitle(true)}>
-                            <H1>{thisNode.title || <span className="text-gray-500">Untitled</span>}</H1>
+                            <H1>{thisNode.title || <span className="text-gray-500">Untitled {thisNode.type}</span>}</H1>
                         </Button>
                     )}
                 </div>

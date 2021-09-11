@@ -23,7 +23,7 @@ import fetcher from "../utils/fetcher";
 const NodeCard = ({node}: {node: DatedObj<NodeObj>}) => (
     <Button href={`/node/${node._id}`}>
         <Card>
-            <H3>{node.title || <span className="text-gray-400">New {node.type}</span>}</H3>
+            <H3>{node.title || <span className="text-gray-400">Untitled {node.type}</span>}</H3>
             <p className="text-gray-500">{node.body || <span className="text-gray-400">No description</span>}</p>
             <div className="flex items-center mt-4 text-sm">
                 <Badge>{{
