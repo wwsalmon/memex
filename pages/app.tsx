@@ -17,17 +17,26 @@ import axios from "axios";
 import {useRouter} from "next/router";
 import {useToasts} from "react-toast-notifications";
 import showToast from "../utils/showToast";
+import useSWR, {SWRResponse} from "swr";
+import fetcher from "../utils/fetcher";
 
-const ProjectCard = ({name, description, badgeLetter, badgeNumber}: {name: string, description: string, badgeLetter: string, badgeNumber: number}) => (
-    <Card>
-        <H3>{name}</H3>
-        <p className="text-gray-500">{description}</p>
-        <div className="flex items-center mt-4 text-sm">
-            <Badge>{badgeLetter}</Badge>
-            <div className="ml-2 text-gray-500"><span>{badgeNumber}</span></div>
-        </div>
-    </Card>
-);
+const NodeCard = ({node}: {node: DatedObj<NodeObj>}) => (
+    <Button href={`/node/${node._id}`}>
+        <Card>
+            <H3>{node.title || <span className="text-gray-400">New {node.type}</span>}</H3>
+            <p className="text-gray-500">{node.body || <span className="text-gray-400">No description</span>}</p>
+            <div className="flex items-center mt-4 text-sm">
+                <Badge>{{
+                    timeline: "T",
+                    blog: "L",
+                    note: "N",
+                    bucket: "B",
+                }[node.type]}</Badge>
+                <div className="ml-2 text-gray-500"><span>0</span></div>
+            </div>
+        </Card>
+    </Button>
+)
 
 export default function App({thisUser}: {thisUser: DatedObj<NodeObj>}) {
     const router = useRouter();
@@ -50,6 +59,8 @@ export default function App({thisUser}: {thisUser: DatedObj<NodeObj>}) {
             showToast(false, e.message, addToast);
         });
     }
+
+    const {data, error}: SWRResponse<{ nodes: DatedObj<NodeObj>[] }, any> = useSWR(`/api/node?parentId=${thisUser._id}`, fetcher);
 
     return (
         <Container width="5xl" padding={8} className="bg-gray-100 rounded-md border py-8">
@@ -100,10 +111,9 @@ export default function App({thisUser}: {thisUser: DatedObj<NodeObj>}) {
                 </Modal>
             </div>
             <div className="grid grid-cols-3 gap-4">
-                <ProjectCard name="Question Journal" description="Journal of bad questions" badgeLetter="B" badgeNumber={5}/>
-                <ProjectCard name="Question Journal" description="Journal of bad questions" badgeLetter="B" badgeNumber={5}/>
-                <ProjectCard name="Question Journal" description="Journal of bad questions" badgeLetter="B" badgeNumber={5}/>
-                <ProjectCard name="Question Journal" description="Journal of bad questions" badgeLetter="B" badgeNumber={5}/>
+                {data && data.nodes.map(node => (
+                    <NodeCard node={node}/>
+                ))}
             </div>
         </Container>
     );

@@ -1,13 +1,43 @@
 import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
-import {res200, res400} from "next-response-helpers";
+import {res200, res400, res404} from "next-response-helpers";
 import {NodeModel} from "../../models/Node";
 import {ParentLinkModel} from "../../models/ParentLink";
 import * as mongoose from "mongoose";
 
 const handler: NextApiHandler = nextApiEndpoint(
     async function getFunction(req, res, session, thisUser) {
+        const {parentId, id} = req.query;
 
+        if (id) {
+            const thisNote = await NodeModel.findOne({_id: id.toString()});
+
+            if (!thisNote) return res404(res);
+
+            return res200(res, {node: thisNote});
+        }
+
+        if (parentId) {
+            const lookupObj = await ParentLinkModel.aggregate([
+                {$match: {parentId: mongoose.Types.ObjectId(parentId.toString())}},
+                {
+                    $lookup: {
+                        from: "nodes",
+                        let: {"childId": "$childId"},
+                        pipeline: [
+                            {$match: {$expr: {$eq: ["$_id", "$$childId"]}}},
+                        ],
+                        as: "nodesArr",
+                    }
+                }
+            ]);
+
+            const nodesArr = lookupObj.map(link => link.nodesArr[0]);
+
+            return res200(res, {nodes: nodesArr});
+        }
+
+        return res400(res);
     },
     async function postFunction(req, res, session, thisUser) {
         const {id, title, body, type, image, parentId, urlName} = req.body;
