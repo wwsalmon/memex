@@ -10,6 +10,11 @@ import Modal from "../components/Modal";
 import {useState} from "react";
 import H1 from "../components/style/H1";
 import ItemButton from "../components/ItemButton";
+import dbConnect from "../utils/dbConnect";
+import {NodeModel} from "../models/Node";
+import getUserOrMakeNew from "../utils/getUserOrMakeNew";
+import {DatedObj, NodeObj} from "../utils/types";
+import cleanForJSON from "../utils/cleanForJSON";
 
 const ProjectCard = ({name, description, badgeLetter, badgeNumber}: {name: string, description: string, badgeLetter: string, badgeNumber: number}) => (
     <Card>
@@ -22,7 +27,7 @@ const ProjectCard = ({name, description, badgeLetter, badgeNumber}: {name: strin
     </Card>
 );
 
-export default function App() {
+export default function App({thisUser}: {thisUser: DatedObj<NodeObj>}) {
     const [newCatOpen, setNewCatOpen] = useState<boolean>(false);
 
     return (
@@ -62,5 +67,13 @@ export default function App() {
 export const getServerSideProps: GetServerSideProps = async ({req, res}) => {
     const session = await getSession({req});
 
-    return session ? {props: {}} : ssrRedirect("/app");
+    if (!session) return ssrRedirect("/");
+
+    await dbConnect();
+
+    const thisUserRes = await getUserOrMakeNew(session);
+
+    if (thisUserRes.error) return {notFound: true};
+
+    return {props: {thisUser: cleanForJSON(thisUserRes.data)}};
 };

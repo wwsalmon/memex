@@ -5,13 +5,15 @@ export type ButtonProps = (React.HTMLProps<HTMLButtonElement> | React.HTMLProps<
 
 export default function Button(props: ButtonProps) {
     const {href, isLoading, children, containerClassName, disabled} = props;
+    let domProps = {...props};
+    delete domProps.containerClassName;
 
     return (
         <div className={`relative inline-block ${containerClassName || ""} ${disabled ? "opacity-25 cursor-not-allowed" : ""}`}>
             {href ? (
                 <Link href={href}>
                     {/* @ts-ignore */}
-                    <a {...props}>
+                    <a {...domProps}>
                         <div className={isLoading ? "invisible" : ""}>
                             {children}
                         </div>
@@ -19,7 +21,7 @@ export default function Button(props: ButtonProps) {
                 </Link>
             ) : (
                 // @ts-ignore
-                <button {...props}>
+                <button {...domProps}>
                     <div className={(isLoading ? "invisible " : "") + (disabled ? "cursor-not-allowed" : "")}>
                         {children}
                     </div>
