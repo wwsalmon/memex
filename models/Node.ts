@@ -5,6 +5,7 @@ export const NodeModel: Model<DatedObj<NodeObj>> = mongoose.models.node || mongo
     urlName: { required: true, type: String },
     type: { required: true, type: String },
     body: { required: false, type: String },
+    slateBody: { required: false, type: Array },
     image: { required: false, type: String },
     title: { required: false, type: String },
 }, {

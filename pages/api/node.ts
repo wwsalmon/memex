@@ -4,6 +4,8 @@ import {res200, res400, res404} from "next-response-helpers";
 import {NodeModel} from "../../models/Node";
 import {ParentLinkModel} from "../../models/ParentLink";
 import * as mongoose from "mongoose";
+import htmlDecode from "../../utils/htmlDecode";
+import {serialize} from "remark-slate";
 
 const handler: NextApiHandler = nextApiEndpoint(
     async function getFunction(req, res, session, thisUser) {
@@ -54,7 +56,7 @@ const handler: NextApiHandler = nextApiEndpoint(
         return res400(res);
     },
     async function postFunction(req, res, session, thisUser) {
-        const {id, title, body, type, image, parentId, urlName} = req.body;
+        const {id, title, body, slateBody, type, image, parentId, urlName} = req.body;
 
         if (!id && !(["note", "bucket", "timeline", "blog", "comment", "user"].includes(type) && parentId)) return res400(res);
 
@@ -62,7 +64,40 @@ const handler: NextApiHandler = nextApiEndpoint(
             const thisNote = await NodeModel.findOne({_id: id});
             
             if (title) thisNote.title = title;
-            if (body) thisNote.body = body;
+            if (slateBody) {
+                thisNote.slateBody = slateBody;
+                thisNote.body = htmlDecode(
+                    slateBody.map(d => serialize(d, {
+                        nodeTypes: {
+                            paragraph: "p",
+                            ul_list: "ul",
+                            ol_list: "ol",
+                            listItem: "li",
+                            heading: {
+                                1: "h1",
+                                2: "h2",
+                                3: "h3",
+                                4: "h4",
+                                5: "h5",
+                                6: "h6",
+                            },
+                            emphasis_mark: "italic",
+                            strong_mark: "bold",
+                            inline_code_mark: "code",
+                            block_quote: "blockquote",
+                            code_block: "codeblock",
+                            link: "a",
+                            image: "img",
+                            delete_mark: "s",
+                            thematic_break: "br",
+                        },
+                    })
+                ).join(""));
+            }
+            else if (body) {
+                thisNote.body = body;
+                thisNote.slateBody = [{type: "p", children: [{text: body}]}];
+            }
             if (image) thisNote.image = image;
             if (type) thisNote.type = type;
             if (urlName) thisNote.urlName = urlName;
@@ -74,6 +109,7 @@ const handler: NextApiHandler = nextApiEndpoint(
             let newNode = {
                 title: title || "",
                 body: body || "",
+                slateBody: [{type: "p", children: [{text: body || ""}]}],
                 type: type,
             };
 

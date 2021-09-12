@@ -1,6 +1,9 @@
+import {Descendant} from "slate";
+
 export interface NodeObj {
     urlName: string,
     body: string,
+    slateBody: Descendant[],
     type: NodeObjTypeOpts,
     title?: string,
     image?: string,

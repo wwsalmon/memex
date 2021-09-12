@@ -9,7 +9,7 @@ import {DatedObj, NodeObj, ParentLinkObj} from "../../utils/types";
 import Container from "../../components/Container";
 import H1 from "../../components/style/H1";
 import Button from "../../components/Button";
-import {useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {getInputStateProps} from "react-controlled-component-helpers";
 import axios from "axios";
 import showToast from "../../utils/showToast";
@@ -26,6 +26,8 @@ import Badge from "../../components/style/Badge";
 import getLetterFromType from "../../utils/getLetterFromType";
 import Link from "next/link";
 import SlateEditor from "../../components/SlateEditor";
+import {Descendant} from "slate";
+import {useAutosave} from "react-autosave";
 
 const NodeCrumb = ({id}: { id: string }) => {
     const {data, error} = useSWR(`/api/node?id=${id}`);
@@ -48,6 +50,8 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
     const [isEditTitle, setIsEditTitle] = useState<boolean>(!(thisNode.title || thisNode.body));
     const [isEditTitleLoading, setIsEditTitleLoading] = useState<boolean>(false);
     const [title, setTitle] = useState<string>(thisNode.title || `Untitled ${thisNode.type}`);
+    const [value, setValue] = useState<Descendant[]>(thisNode.slateBody || [{type: "p", children: [{text: ""}]}]);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const prevTitle = thisNode.title || `Untitled ${thisNode.type}`;
 
@@ -80,6 +84,18 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
         data,
         error
     }: SWRResponse<{ nodes: (DatedObj<NodeObj> & { linksArr: DatedObj<ParentLinkObj>[] })[] }, any> = useSWR(`/api/node?parentId=${thisNode._id}&childCount=true`, fetcher);
+
+    useAutosave({data: value, onSave: useCallback((value) => {
+        setIsSaving(true);
+
+        axios.post("/api/node", {
+            id: thisNode._id,
+            slateBody: value,
+        })
+            .then(res => setThisNode(res.data.node))
+            .catch(e => console.log(e))
+            .finally(() => setIsSaving(false));
+    }, []), interval: 1000});
 
     return (
         <>
@@ -147,6 +163,17 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                         <p>Created {format(new Date(thisNode.createdAt), "MMMM d, yyyy")}</p>
                         <Badge className="ml-6"><Badge>{getLetterFromType(thisNode.type)}</Badge></Badge>
                         <div className="ml-2 text-gray-500"><span>{data && data.nodes.length}</span></div>
+                        {thisNode.type === "note" && (
+                            <p className="ml-auto text-gray-500">
+                                {isSaving ? (
+                                    "Saving..."
+                                ) : (JSON.stringify(value) !== JSON.stringify(thisNode.slateBody)) ? (
+                                    "Unsaved changes"
+                                ) : (
+                                    "All changes saved"
+                                )}
+                            </p>
+                        )}
                         {thisNode.type !== "note" && (
                             <NewNodeButtonAndModal
                                 router={router}
@@ -162,7 +189,9 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                         ))}
                     </div>
                     {thisNode.type === "note" && (
-                        <SlateEditor/>
+                        <>
+                            <SlateEditor value={value} setValue={setValue}/>
+                        </>
                     )}
                 </Container>
                 <hr className="invisible"/>

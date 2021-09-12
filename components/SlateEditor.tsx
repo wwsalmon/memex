@@ -9,20 +9,17 @@ import {
     Point,
 } from "slate";
 import {HistoryEditor, withHistory} from "slate-history";
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState} from "react";
 import isHotkey from "is-hotkey";
 import Button from "./Button";
 
-export default function SlateEditor({}: {}) {
+export default function SlateEditor({value, setValue}: {
+    value: Descendant[],
+    setValue: Dispatch<SetStateAction<Descendant[]>>
+}) {
     const [editor] = useState<ReactEditor & HistoryEditor>(withShortcuts(withHistory(withReact(createEditor()))));
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
-    const [value, setValue] = useState<Descendant[]>([
-        {
-            type: "paragraph",
-            children: [{text: ""}],
-        },
-    ]);
 
     return (
         <div className="prose" style={{fontSize: 20}}>
@@ -64,33 +61,33 @@ const markHotkeys = {
 };
 
 const blockHotkeys = {
-    "mod+alt+1": "heading-one",
-    "mod+alt+2": "heading-two",
-    "mod+alt+3": "heading-three",
-    "mod+alt+4": "heading-four",
+    "mod+alt+1": "h1",
+    "mod+alt+2": "h2",
+    "mod+alt+3": "h3",
+    "mod+alt+4": "h4",
 };
 
 const mdShortcuts = {
-    "*": "list-item",
-    "-": "list-item",
-    "+": "list-item",
-    ">": "block-quote",
-    "#": "heading-one",
-    "##": "heading-two",
-    "###": "heading-three",
-    "####": "heading-four",
+    "*": "li",
+    "-": "li",
+    "+": "li",
+    ">": "blockquote",
+    "#": "h1",
+    "##": "h2",
+    "###": "h3",
+    "####": "h4",
     "#####": "heading-five",
     "######": "heading-six",
-    "1.": "numbered-list-item",
+    "1.": "numbered-li",
 };
 
 type BulletedListElement = {
-    type: "bulleted-list",
+    type: "ul",
     children: Descendant[],
 }
 
 type NumberedListElement = {
-    type: "numbered-list",
+    type: "ol",
     children: Descendant[],
 }
 
@@ -121,29 +118,29 @@ const withShortcuts = editor => {
                     match: n => Editor.isBlock(editor, n),
                 });
 
-                if (type === "list-item") {
+                if (type === "li") {
                     const list: BulletedListElement = {
-                        type: "bulleted-list",
+                        type: "ul",
                         children: [],
                     };
                     Transforms.wrapNodes(editor, list, {
                         match: n =>
                             !Editor.isEditor(n) &&
                             SlateElement.isElement(n) &&
-                            n.type === "list-item",
+                            n.type === "li",
                     });
                 }
 
-                if (type === "numbered-list-item") {
+                if (type === "numbered-li") {
                     const list: NumberedListElement = {
-                        type: "numbered-list",
+                        type: "ol",
                         children: [],
                     };
                     Transforms.wrapNodes(editor, list, {
                         match: n =>
                             !Editor.isEditor(n) &&
                             SlateElement.isElement(n) &&
-                            n.type === "numbered-list-item",
+                            n.type === "numbered-li",
                     });
                 }
 
@@ -169,30 +166,30 @@ const withShortcuts = editor => {
                 if (
                     !Editor.isEditor(block) &&
                     SlateElement.isElement(block) &&
-                    block.type !== "paragraph" &&
+                    block.type !== "p" &&
                     Point.equals(selection.anchor, start)
                 ) {
                     const newProperties: Partial<SlateElement> = {
-                        type: "paragraph",
+                        type: "p",
                     };
                     Transforms.setNodes(editor, newProperties);
 
-                    if (block.type === "list-item") {
+                    if (block.type === "li") {
                         Transforms.unwrapNodes(editor, {
                             match: n =>
                                 !Editor.isEditor(n) &&
                                 SlateElement.isElement(n) &&
-                                n.type === "bulleted-list",
+                                n.type === "ul",
                             split: true,
                         });
                     }
 
-                    if (block.type === "numbered-list-item") {
+                    if (block.type === "numbered-li") {
                         Transforms.unwrapNodes(editor, {
                             match: n =>
                                 !Editor.isEditor(n) &&
                                 SlateElement.isElement(n) &&
-                                n.type === "numbered-list",
+                                n.type === "ol",
                             split: true,
                         });
                     }
@@ -217,10 +214,10 @@ const BlockButton = ({editor, format}: { editor: ReactEditor & HistoryEditor, fo
         }}
     >
         {{
-            "heading-one": "H1",
-            "heading-two": "H2",
-            "heading-three": "H3",
-            "heading-four": "H4",
+            "h1": "H1",
+            "h2": "H2",
+            "h3": "H3",
+            "h4": "H4",
         }[format]}
     </Button>
 );
@@ -242,17 +239,17 @@ const isMarkActive = (editor, format) => {
 
 const toggleBlock = (editor, format) => {
     const isActive = isBlockActive(editor, format);
-    const isList = ["bulleted-list", "numbered-list"].includes(format);
+    const isList = ["ul", "ol"].includes(format);
 
     Transforms.unwrapNodes(editor, {
         match: n =>
-            ["bulleted-list", "numbered-list"].includes(
+            ["ul", "ol"].includes(
                 !Editor.isEditor(n) && SlateElement.isElement(n) && n.type
             ),
         split: true,
     });
     const newProperties: Partial<SlateElement> = {
-        type: isActive ? "paragraph" : isList ? "list-item" : format,
+        type: isActive ? "p" : isList ? "li" : format,
     };
     Transforms.setNodes(editor, newProperties);
 
@@ -273,23 +270,23 @@ const isBlockActive = (editor, format) => {
 
 const Element = ({attributes, children, element}) => {
     switch (element.type) {
-        case "block-quote":
+        case "blockquote":
             return <blockquote {...attributes}>{children}</blockquote>;
-        case "bulleted-list":
+        case "ul":
             return <ul {...attributes}>{children}</ul>;
-        case "heading-one":
+        case "h1":
             return <h1 {...attributes}>{children}</h1>;
-        case "heading-two":
+        case "h2":
             return <h2 {...attributes}>{children}</h2>;
-        case "heading-three":
+        case "h3":
             return <h3 {...attributes}>{children}</h3>;
-        case "heading-four":
+        case "h4":
             return <h4 {...attributes}>{children}</h4>;
-        case "list-item":
+        case "li":
             return <li {...attributes}>{children}</li>;
-        case "numbered-list-item":
+        case "numbered-li":
             return <li {...attributes}>{children}</li>;
-        case "numbered-list":
+        case "ol":
             return <ol {...attributes}>{children}</ol>;
         default:
             return <p {...attributes}>{children}</p>;
