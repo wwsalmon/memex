@@ -24,6 +24,7 @@ import {ParentLinkModel} from "../../models/ParentLink";
 import {format} from "date-fns";
 import Badge from "../../components/style/Badge";
 import getLetterFromType from "../../utils/getLetterFromType";
+import Link from "next/link";
 
 const NodeCrumb = ({id}: {id: string}) => {
     const {data, error} = useSWR(`/api/node?id=${id}`);
@@ -75,7 +76,7 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks:
 
     return (
         <>
-            <Container width="5xl" padding={8} className="mb-4 flex items-center">
+            <div className="fixed top-0 left-4 flex items-center h-16 z-10">
                 {linkChain.reverse().map((d, i) => (
                     <>
                         <NodeCrumb id={d.parentId}/>
@@ -83,59 +84,79 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks:
                     </>
                 ))}
                 <span className="font-bold">{thisNode.title}</span>
-            </Container>
-            <Container width="5xl" padding={8} className="bg-gray-100 rounded-md border py-8">
-                <div className="flex mb-8">
-                    <div>
-                        {isEditTitle ? (
-                            <>
-                                <input
-                                    className="font-bold text-3xl -m-2 p-2 border rounded" {...getInputStateProps(title, setTitle)}
-                                    onKeyDown={e => {
-                                        if (e.key === "Escape") {
+            </div>
+            <div className="relative">
+                {!!linkChain.length && (
+                    <Link href={`/node/${linkChain[linkChain.length - 1].parentId}`}>
+                        <a className={`absolute block w-full left-0 top-0 z-0 h-full ${thisNode.type === "note" ? "bg-gray-200" : ""}`} style={{minHeight: "100vh"}}/>
+                    </Link>
+                )}
+                <hr className="invisible"/>
+                <Container width={thisNode.type === "note" ? "3xl" : "5xl"} padding={8} className={`${thisNode.type === "note" ? "bg-white" : "bg-gray-100"} rounded-md border py-8 my-20 relative z-5`}>
+                    <div className="flex mb-8">
+                        <div>
+                            {isEditTitle ? (
+                                <>
+                                    <input
+                                        className="font-bold text-3xl -m-2 p-2 border rounded" {...getInputStateProps(title, setTitle)}
+                                        onKeyDown={e => {
+                                            if (e.key === "Escape") {
+                                                setTitle(prevTitle);
+                                                return setIsEditTitle(false);
+                                            }
+                                            if (e.key === "Enter") {
+                                                return title === prevTitle ? setIsEditTitle(false) : onSubmitEditTitle();
+                                            }
+                                        }}
+                                        autoFocus={true}
+                                        onBlur={() => {
                                             setTitle(prevTitle);
                                             return setIsEditTitle(false);
-                                        }
-                                        if (e.key === "Enter") {
-                                            return title === prevTitle ? setIsEditTitle(false) : onSubmitEditTitle();
-                                        }
-                                    }}
-                                    autoFocus={true}
-                                    onBlur={() => {
-                                        setTitle(prevTitle);
-                                        return setIsEditTitle(false);
-                                    }}
-                                />
-                                {title !== prevTitle && (
-                                    <p className="text-sm mt-3">{isEditTitleLoading ? "Saving..." : `Press "Enter" to save`}</p>
-                                )}
-                            </>
-                        ) : (
-                            <Button className="-m-2 p-2 hover:bg-gray-200 transition" onClick={() => setIsEditTitle(true)}>
-                                <H1>{thisNode.title || <span className="text-gray-500">Untitled {thisNode.type}</span>}</H1>
-                            </Button>
+                                        }}
+                                    />
+                                    {title !== prevTitle && (
+                                        <p className="text-sm mt-3">{isEditTitleLoading ? "Saving..." : `Press "Enter" to save`}</p>
+                                    )}
+                                </>
+                            ) : (
+                                <Button className="-m-2 p-2 hover:bg-gray-200 transition" onClick={() => setIsEditTitle(true)}>
+                                    <H1>{thisNode.title || <span className="text-gray-500">Untitled {thisNode.type}</span>}</H1>
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="my-6 flex items-center">
+                        <p>Created {format(new Date(thisNode.createdAt), "MMMM d, yyyy")}</p>
+                        <Badge className="ml-6"><Badge>{getLetterFromType(thisNode.type)}</Badge></Badge>
+                        <div className="ml-2 text-gray-500"><span>{data && data.nodes.length}</span></div>
+                        {thisNode.type !== "note" && (
+                            <NewNodeButtonAndModal
+                                router={router}
+                                addToast={addToast}
+                                parentId={thisNode._id}
+                                className="ml-auto"
+                            />
                         )}
                     </div>
-                </div>
-                <div className="my-6 flex items-center">
-                    <p>Created {format(new Date(thisNode.createdAt), "MMMM d, yyyy")}</p>
-                    <Badge className="ml-6"><Badge>{getLetterFromType(thisNode.type)}</Badge></Badge>
-                    <div className="ml-2 text-gray-500"><span>{data && data.nodes.length}</span></div>
-                    {thisNode.type !== "note" && (
-                        <NewNodeButtonAndModal
-                            router={router}
-                            addToast={addToast}
-                            parentId={thisNode._id}
-                            className="ml-auto"
-                        />
+                    <div className="grid grid-cols-3 gap-4">
+                        {data && data.nodes.map(node => (
+                            <NodeCard node={node}/>
+                        ))}
+                    </div>
+                    {thisNode.type === "note" && (
+                        <div className="prose" style={{fontSize: 20}}>
+                            <p>Originally from Physics 70 questionnaire:</p>
+                            <p>People and relationships above all. These are the anchors of all joy and meaning in life. I strive to be trusting, empathetic and kind, and build strong relationships with others.</p>
+                            <p>"The unexamined life is not worth living": I value reflection about yourself and your relationship to the world around you. Move with intention, even if that intention is exploration rather than a specific direction. Pick and choose your battles, but strive to not be complacent about problems around you that you can contribute to solving.</p>
+                            <p>Letting go and diving in when searching for jobs</p>
+                            <p>"Find someone you want to be like and be useful to them."</p>
+                            <p>It's common advice but I haven't been following it. As I've learned, I tend to focus on the present and have a hard time conceptualizing and planning for the future.</p>
+                            <p>My most valuable work opportunities have come where this mantra has accidentally been followed, i.e. at The Yappie, working for/with journalists with the experience and credentials I want, but I only applied bc someone told me on Twitter and I thought I could get the position fairly easily.</p>
+                        </div>
                     )}
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                    {data && data.nodes.map(node => (
-                        <NodeCard node={node}/>
-                    ))}
-                </div>
-            </Container>
+                </Container>
+                <hr className="invisible"/>
+            </div>
         </>
     )
 }

@@ -8,9 +8,8 @@ export default function Navbar() {
     const router = useRouter();
 
     return (
-        <div className="w-full sticky top-0">
+        <div className="w-full fixed top-0 z-10">
             <Container className="flex items-center my-4" width="full">
-                <p>Memex</p>
                 <div className="ml-auto">
                     {(session && router.route !== "/") ? (
                         <img
