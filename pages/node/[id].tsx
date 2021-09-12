@@ -28,6 +28,7 @@ import Link from "next/link";
 import SlateEditor from "../../components/SlateEditor";
 import {Descendant} from "slate";
 import {useAutosave} from "react-autosave";
+import slateWordCount from "../../utils/slateWordCount";
 
 const NodeCrumb = ({id}: { id: string }) => {
     const {data, error} = useSWR(`/api/node?id=${id}`);
@@ -191,6 +192,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                     {thisNode.type === "note" && (
                         <>
                             <SlateEditor value={value} setValue={setValue}/>
+                            <p className="text-sm text-gray-500">{slateWordCount(value)} words / {Math.ceil(slateWordCount(value) / 200)} min read</p>
                         </>
                     )}
                 </Container>
