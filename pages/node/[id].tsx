@@ -86,6 +86,8 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
         error
     }: SWRResponse<{ nodes: (DatedObj<NodeObj> & { linksArr: DatedObj<ParentLinkObj>[] })[] }, any> = useSWR(`/api/node?parentId=${thisNode._id}&childCount=true`, fetcher);
 
+    const wordCountAndTime = `${slateWordCount(value)} words / ${Math.ceil(slateWordCount(value) / 200)} min read`;
+
     useAutosave({data: value, onSave: useCallback((value) => {
         setIsSaving(true);
 
@@ -163,7 +165,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                     <div className="my-6 flex items-center">
                         <p>Created {format(new Date(thisNode.createdAt), "MMMM d, yyyy")}</p>
                         <Badge className="ml-6"><Badge>{getLetterFromType(thisNode.type)}</Badge></Badge>
-                        <div className="ml-2 text-gray-500"><span>{data && data.nodes.length}</span></div>
+                        <div className="ml-2 text-gray-500"><span>{thisNode.type === "note" ? `${Math.ceil(slateWordCount(value) / 200)} min read` : (data && data.nodes.length)}</span></div>
                         {thisNode.type === "note" && (
                             <p className="ml-auto text-gray-500">
                                 {isSaving ? (
@@ -192,7 +194,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                     {thisNode.type === "note" && (
                         <>
                             <SlateEditor value={value} setValue={setValue}/>
-                            <p className="text-sm text-gray-500">{slateWordCount(value)} words / {Math.ceil(slateWordCount(value) / 200)} min read</p>
+                            <p className="text-sm text-gray-500">{wordCountAndTime}</p>
                         </>
                     )}
                 </Container>
