@@ -52,7 +52,7 @@ export default function NewNodeButtonAndModal({className, router, addToast, disa
                     <ItemButton
                         name="Note (n)" description="Write down your ideas"
                         onClick={() => onSubmit("note")}
-                        color="pink"
+                        color="black"
                         disabled={disabledOptions && disabledOptions.includes("note")}
                         isLoading={isLoading}
                     />
@@ -76,7 +76,7 @@ export default function NewNodeButtonAndModal({className, router, addToast, disa
                         name="Blog (l)"
                         description="A more substantial feed"
                         onClick={() => onSubmit("blog")}
-                        color="black"
+                        color="pink"
                         disabled={disabledOptions && disabledOptions.includes("blog")}
                         isLoading={isLoading}
                     />

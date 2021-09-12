@@ -23,7 +23,7 @@ import * as mongoose from "mongoose";
 import {ParentLinkModel} from "../../models/ParentLink";
 import {format} from "date-fns";
 import Badge from "../../components/style/Badge";
-import getLetterFromType from "../../utils/getLetterFromType";
+import {getLetterFromType} from "../../utils/getInfoFromType";
 import Link from "next/link";
 import SlateEditor from "../../components/SlateEditor";
 import {Descendant} from "slate";
