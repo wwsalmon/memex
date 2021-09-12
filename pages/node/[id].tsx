@@ -72,7 +72,7 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks:
 
     const linkChain = getLinkChain(thisNode._id);
 
-    const {data, error}: SWRResponse<{ nodes: DatedObj<NodeObj>[] }, any> = useSWR(`/api/node?parentId=${thisNode._id}`, fetcher);
+    const {data, error}: SWRResponse<{ nodes: (DatedObj<NodeObj> & { linksArr: DatedObj<ParentLinkObj>[] })[] }, any> = useSWR(`/api/node?parentId=${thisNode._id}&childCount=true`, fetcher);
 
     return (
         <>

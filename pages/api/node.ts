@@ -7,7 +7,7 @@ import * as mongoose from "mongoose";
 
 const handler: NextApiHandler = nextApiEndpoint(
     async function getFunction(req, res, session, thisUser) {
-        const {parentId, id} = req.query;
+        const {parentId, id, childCount} = req.query;
 
         if (id) {
             const thisNote = await NodeModel.findOne({_id: id.toString()});
@@ -18,6 +18,19 @@ const handler: NextApiHandler = nextApiEndpoint(
         }
 
         if (parentId) {
+            let nodeLookupStages = [];
+
+            if (childCount) nodeLookupStages = [
+                {
+                    $lookup: {
+                        from: "parentlinks",
+                        foreignField: "parentId",
+                        localField: "_id",
+                        as: "linksArr",
+                    },
+                },
+            ]
+
             const lookupObj = await ParentLinkModel.aggregate([
                 {$match: {parentId: mongoose.Types.ObjectId(parentId.toString())}},
                 {
@@ -26,6 +39,7 @@ const handler: NextApiHandler = nextApiEndpoint(
                         let: {"childId": "$childId"},
                         pipeline: [
                             {$match: {$expr: {$eq: ["$_id", "$$childId"]}}},
+                            ...nodeLookupStages,
                         ],
                         as: "nodesArr",
                     }
