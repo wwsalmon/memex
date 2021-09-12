@@ -9,7 +9,7 @@ import {DatedObj, NodeObj, ParentLinkObj} from "../../utils/types";
 import Container from "../../components/Container";
 import H1 from "../../components/style/H1";
 import Button from "../../components/Button";
-import {useState} from "react";
+import {useMemo, useState} from "react";
 import {getInputStateProps} from "react-controlled-component-helpers";
 import axios from "axios";
 import showToast from "../../utils/showToast";
@@ -25,18 +25,22 @@ import {format} from "date-fns";
 import Badge from "../../components/style/Badge";
 import getLetterFromType from "../../utils/getLetterFromType";
 import Link from "next/link";
+import SlateEditor from "../../components/SlateEditor";
 
-const NodeCrumb = ({id}: {id: string}) => {
+const NodeCrumb = ({id}: { id: string }) => {
     const {data, error} = useSWR(`/api/node?id=${id}`);
 
     return (
-        <Button href={`/node/${id}`} className="px-2 py-1 mx-1 -ml-2 hover:bg-gray-100 block transition rounded text-gray-500 font-medium">
+        <Button
+            href={`/node/${id}`}
+            className="px-2 py-1 mx-1 -ml-2 hover:bg-gray-100 block transition rounded text-gray-500 font-medium"
+        >
             {data ? data.node.title : "Loading..."}
         </Button>
     );
 };
 
-export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks: DatedObj<ParentLinkObj>[], thisUser?: DatedObj<NodeObj>}) {
+export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks: DatedObj<ParentLinkObj>[], thisUser?: DatedObj<NodeObj> }) {
     const {addToast} = useToasts();
     const router = useRouter();
 
@@ -72,7 +76,10 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks:
 
     const linkChain = getLinkChain(thisNode._id);
 
-    const {data, error}: SWRResponse<{ nodes: (DatedObj<NodeObj> & { linksArr: DatedObj<ParentLinkObj>[] })[] }, any> = useSWR(`/api/node?parentId=${thisNode._id}&childCount=true`, fetcher);
+    const {
+        data,
+        error
+    }: SWRResponse<{ nodes: (DatedObj<NodeObj> & { linksArr: DatedObj<ParentLinkObj>[] })[] }, any> = useSWR(`/api/node?parentId=${thisNode._id}&childCount=true`, fetcher);
 
     return (
         <>
@@ -88,11 +95,18 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks:
             <div className="relative">
                 {!!linkChain.length && (
                     <Link href={`/node/${linkChain[linkChain.length - 1].parentId}`}>
-                        <a className={`absolute block w-full left-0 top-0 z-0 h-full ${thisNode.type === "note" ? "bg-gray-200" : ""}`} style={{minHeight: "100vh"}}/>
+                        <a
+                            className={`absolute block w-full left-0 top-0 z-0 h-full ${thisNode.type === "note" ? "bg-gray-200" : ""}`}
+                            style={{minHeight: "100vh"}}
+                        />
                     </Link>
                 )}
                 <hr className="invisible"/>
-                <Container width={thisNode.type === "note" ? "3xl" : "5xl"} padding={8} className={`${thisNode.type === "note" ? "bg-white" : "bg-gray-100"} rounded-md border py-8 my-20 relative z-5`}>
+                <Container
+                    width={thisNode.type === "note" ? "3xl" : "5xl"}
+                    padding={8}
+                    className={`${thisNode.type === "note" ? "bg-white" : "bg-gray-100"} rounded-md border py-8 my-20 relative z-5`}
+                >
                     <div className="flex mb-8">
                         <div>
                             {isEditTitle ? (
@@ -119,8 +133,12 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks:
                                     )}
                                 </>
                             ) : (
-                                <Button className="-m-2 p-2 hover:bg-gray-200 transition" onClick={() => setIsEditTitle(true)}>
-                                    <H1>{thisNode.title || <span className="text-gray-500">Untitled {thisNode.type}</span>}</H1>
+                                <Button
+                                    className="-m-2 p-2 hover:bg-gray-200 transition"
+                                    onClick={() => setIsEditTitle(true)}
+                                >
+                                    <H1>{thisNode.title ||
+                                    <span className="text-gray-500">Untitled {thisNode.type}</span>}</H1>
                                 </Button>
                             )}
                         </div>
@@ -144,21 +162,13 @@ export default function Node(props: {thisNode: DatedObj<NodeObj>, thisNodeLinks:
                         ))}
                     </div>
                     {thisNode.type === "note" && (
-                        <div className="prose" style={{fontSize: 20}}>
-                            <p>Originally from Physics 70 questionnaire:</p>
-                            <p>People and relationships above all. These are the anchors of all joy and meaning in life. I strive to be trusting, empathetic and kind, and build strong relationships with others.</p>
-                            <p>"The unexamined life is not worth living": I value reflection about yourself and your relationship to the world around you. Move with intention, even if that intention is exploration rather than a specific direction. Pick and choose your battles, but strive to not be complacent about problems around you that you can contribute to solving.</p>
-                            <p>Letting go and diving in when searching for jobs</p>
-                            <p>"Find someone you want to be like and be useful to them."</p>
-                            <p>It's common advice but I haven't been following it. As I've learned, I tend to focus on the present and have a hard time conceptualizing and planning for the future.</p>
-                            <p>My most valuable work opportunities have come where this mantra has accidentally been followed, i.e. at The Yappie, working for/with journalists with the experience and credentials I want, but I only applied bc someone told me on Twitter and I thought I could get the position fairly easily.</p>
-                        </div>
+                        <SlateEditor/>
                     )}
                 </Container>
                 <hr className="invisible"/>
             </div>
         </>
-    )
+    );
 }
 
 export const getServerSideProps: GetServerSideProps = async ({req, query, res}) => {
@@ -188,7 +198,11 @@ export const getServerSideProps: GetServerSideProps = async ({req, query, res}) 
             return topLink;
         }), ...thisNodeLinks.reduce((a, b) => [...a, ...b.linkHierarchy], [])];
 
-        let props = {thisNode: cleanForJSON(thisNode), thisNodeLinks: cleanForJSON(thisNodeLinksFlat), key: thisNode._id.toString()};
+        let props = {
+            thisNode: cleanForJSON(thisNode),
+            thisNodeLinks: cleanForJSON(thisNodeLinksFlat),
+            key: thisNode._id.toString()
+        };
 
         const session = await getSession({req});
 
