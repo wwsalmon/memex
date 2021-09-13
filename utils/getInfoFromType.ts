@@ -9,7 +9,7 @@ export const getLetterFromType = (type: NodeObjTypeOpts) => ({
 }[type]);
 
 export const getBgClassFromType = (type: NodeObjTypeOpts) => ({
-    user: "bg-black",
+    user: "bg-gray-300",
     timeline: "bg-blue-300",
     blog: "bg-pink-300",
     note: "bg-gray-400",

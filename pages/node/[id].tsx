@@ -23,7 +23,7 @@ import * as mongoose from "mongoose";
 import {ParentLinkModel} from "../../models/ParentLink";
 import {format} from "date-fns";
 import Badge from "../../components/style/Badge";
-import {getLetterFromType} from "../../utils/getInfoFromType";
+import {getBgClassFromType, getLetterFromType} from "../../utils/getInfoFromType";
 import Link from "next/link";
 import SlateEditor from "../../components/SlateEditor";
 import {Descendant} from "slate";
@@ -187,7 +187,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                     </div>
                     <div className="my-6 flex items-center">
                         <p>Created {format(new Date(thisNode.createdAt), "MMMM d, yyyy")}</p>
-                        <Badge className="ml-6"><Badge>{getLetterFromType(thisNode.type)}</Badge></Badge>
+                        <Badge className="ml-6" bgClass={getBgClassFromType(thisNode.type)}>{getLetterFromType(thisNode.type)}</Badge>
                         <div className="ml-2 text-gray-500"><span>{thisNode.type === "note" ? `${Math.ceil(slateWordCount(value) / 200)} min read` : (data && data.nodes.length)}</span></div>
                         {thisNode.type === "note" && (
                             <p className="ml-auto text-gray-500">

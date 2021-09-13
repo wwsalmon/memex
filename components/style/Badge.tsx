@@ -5,7 +5,7 @@ export default function Badge(props: React.HTMLProps<HTMLDivElement> & {bgClass?
 
     return (
         <div
-            className={"w-6 h-6 rounded-md text-white flex items-center justify-center font-medium " + (props.bgClass || "bg-purple-300 ") + (props.className || "")}
+            className={"w-6 h-6 rounded-md text-white flex items-center justify-center font-medium " + (props.bgClass || "bg-purple-300") + " " + (props.className || "")}
             {...newProps}
         >
             {props.children}
