@@ -1,28 +1,22 @@
-import {Editable, withReact, useSlate, Slate, ReactEditor} from "slate-react";
-import {
-    Editor,
-    Transforms,
-    createEditor,
-    Descendant,
-    Element as SlateElement,
-    Range,
-    Point,
-} from "slate";
+import {Editable, ReactEditor, Slate, withReact} from "slate-react";
+import {createEditor, Editor, Element as SlateElement, Point, Range, Transforms,} from "slate";
 import {HistoryEditor, withHistory} from "slate-history";
-import {Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState} from "react";
+import {Dispatch, SetStateAction, useCallback, useState} from "react";
 import isHotkey from "is-hotkey";
 import Button from "./Button";
+import {SlateNode} from "../utils/types";
 
 export default function SlateEditor({value, setValue}: {
-    value: Descendant[],
-    setValue: Dispatch<SetStateAction<Descendant[]>>
+    value: SlateNode[],
+    setValue: Dispatch<SetStateAction<SlateNode[]>>
 }) {
-    const [editor] = useState<ReactEditor & HistoryEditor>(withShortcuts(withHistory(withReact(createEditor()))));
+    const [editor] = useState<ReactEditor & HistoryEditor>(withShortcuts(withHistory(withReact(createEditor() as ReactEditor))));
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 
     return (
         <div className="prose" style={{fontSize: 20}}>
+            {/* @ts-ignore */}
             <Slate editor={editor} value={value} onChange={value => setValue(value)}>
                 <Editable
                     renderElement={renderElement}
@@ -83,12 +77,12 @@ const mdShortcuts = {
 
 type BulletedListElement = {
     type: "ul",
-    children: Descendant[],
+    children: SlateNode[],
 }
 
 type NumberedListElement = {
     type: "ol",
-    children: Descendant[],
+    children: SlateNode[],
 }
 
 const withShortcuts = editor => {
@@ -112,6 +106,7 @@ const withShortcuts = editor => {
                 Transforms.select(editor, range);
                 Transforms.delete(editor);
                 const newProperties: Partial<SlateElement> = {
+                    // @ts-ignore
                     type,
                 };
                 Transforms.setNodes(editor, newProperties, {
@@ -127,6 +122,7 @@ const withShortcuts = editor => {
                         match: n =>
                             !Editor.isEditor(n) &&
                             SlateElement.isElement(n) &&
+                            // @ts-ignore
                             n.type === "li",
                     });
                 }
@@ -140,6 +136,7 @@ const withShortcuts = editor => {
                         match: n =>
                             !Editor.isEditor(n) &&
                             SlateElement.isElement(n) &&
+                            // @ts-ignore
                             n.type === "numbered-li",
                     });
                 }
@@ -166,29 +163,35 @@ const withShortcuts = editor => {
                 if (
                     !Editor.isEditor(block) &&
                     SlateElement.isElement(block) &&
+                    // @ts-ignore
                     block.type !== "p" &&
                     Point.equals(selection.anchor, start)
                 ) {
                     const newProperties: Partial<SlateElement> = {
+                        // @ts-ignore
                         type: "p",
                     };
                     Transforms.setNodes(editor, newProperties);
 
+                    // @ts-ignore
                     if (block.type === "li") {
                         Transforms.unwrapNodes(editor, {
                             match: n =>
                                 !Editor.isEditor(n) &&
                                 SlateElement.isElement(n) &&
+                                // @ts-ignore
                                 n.type === "ul",
                             split: true,
                         });
                     }
 
+                    // @ts-ignore
                     if (block.type === "numbered-li") {
                         Transforms.unwrapNodes(editor, {
                             match: n =>
                                 !Editor.isEditor(n) &&
                                 SlateElement.isElement(n) &&
+                                // @ts-ignore
                                 n.type === "ol",
                             split: true,
                         });
@@ -244,11 +247,13 @@ const toggleBlock = (editor, format) => {
     Transforms.unwrapNodes(editor, {
         match: n =>
             ["ul", "ol"].includes(
+                // @ts-ignore
                 !Editor.isEditor(n) && SlateElement.isElement(n) && n.type
             ),
         split: true,
     });
     const newProperties: Partial<SlateElement> = {
+        // @ts-ignore
         type: isActive ? "p" : isList ? "li" : format,
     };
     Transforms.setNodes(editor, newProperties);
@@ -260,8 +265,10 @@ const toggleBlock = (editor, format) => {
 };
 
 const isBlockActive = (editor, format) => {
+    // @ts-ignore
     const [match] = Editor.nodes(editor, {
         match: n =>
+            // @ts-ignore
             !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format,
     });
 

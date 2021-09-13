@@ -5,7 +5,7 @@ import cleanForJSON from "../../utils/cleanForJSON";
 import dbConnect from "../../utils/dbConnect";
 import {NodeModel} from "../../models/Node";
 import {ssr404} from "next-response-helpers";
-import {DatedObj, NodeObj, ParentLinkObj} from "../../utils/types";
+import {DatedObj, NodeObj, ParentLinkObj, SlateNode} from "../../utils/types";
 import Container from "../../components/Container";
 import H1 from "../../components/style/H1";
 import Button from "../../components/Button";
@@ -56,7 +56,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
     const [isEditTitle, setIsEditTitle] = useState<boolean>(!(thisNode.title || thisNode.body));
     const [isEditTitleLoading, setIsEditTitleLoading] = useState<boolean>(false);
     const [title, setTitle] = useState<string>(thisNode.title || `Untitled ${thisNode.type}`);
-    const [value, setValue] = useState<Descendant[]>(thisNode.slateBody || [{type: "p", children: [{text: ""}]}]);
+    const [value, setValue] = useState<SlateNode[]>(thisNode.slateBody || [{type: "p", children: [{text: ""}]}]);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);

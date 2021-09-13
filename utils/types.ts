@@ -1,9 +1,18 @@
 import {Descendant} from "slate";
 
+export interface SlateNode {
+    type: string,
+    children: (SlateNode | SlateText)[],
+}
+
+export interface SlateText {
+    text: string,
+}
+
 export interface NodeObj {
     urlName: string,
     body: string,
-    slateBody: Descendant[],
+    slateBody: SlateNode[],
     type: NodeObjTypeOpts,
     title?: string,
     image?: string,
