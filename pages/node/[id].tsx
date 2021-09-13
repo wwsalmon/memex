@@ -29,6 +29,11 @@ import SlateEditor from "../../components/SlateEditor";
 import {Descendant} from "slate";
 import {useAutosave} from "react-autosave";
 import slateWordCount from "../../utils/slateWordCount";
+import {Menu} from "@headlessui/react";
+import {FiDelete, FiMoreVertical, FiTrash} from "react-icons/fi";
+import Modal from "../../components/style/Modal";
+import MainButton from "../../components/style/MainButton";
+import H2 from "../../components/style/H2";
 
 const NodeCrumb = ({id}: { id: string }) => {
     const {data, error} = useSWR(`/api/node?id=${id}`);
@@ -53,6 +58,8 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
     const [title, setTitle] = useState<string>(thisNode.title || `Untitled ${thisNode.type}`);
     const [value, setValue] = useState<Descendant[]>(thisNode.slateBody || [{type: "p", children: [{text: ""}]}]);
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+    const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
 
     const prevTitle = thisNode.title || `Untitled ${thisNode.type}`;
 
@@ -77,6 +84,22 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
         const thisLink = props.thisNodeLinks.find(d => d.childId === startId && d.primary === true);
         if (!thisLink) return [];
         return [thisLink, ...getLinkChain(thisLink.parentId)];
+    }
+
+    function onDelete() {
+        if (!(linkChain && linkChain.length > 0)) return;
+
+        setIsDeleteLoading(true);
+
+        axios.delete(`/api/node?id=${thisNode._id}`)
+            .then(() => {
+                setIsDeleteLoading(false)
+                router.push(`/node/${linkChain[linkChain.length - 1].parentId}`);
+            })
+            .catch(e => {
+                setIsDeleteLoading(false)
+                showToast(false, e.message, addToast);
+            });
     }
 
     const linkChain = getLinkChain(thisNode._id);
@@ -177,14 +200,46 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                                 )}
                             </p>
                         )}
-                        {thisNode.type !== "note" && (
-                            <NewNodeButtonAndModal
-                                router={router}
-                                addToast={addToast}
-                                parentId={thisNode._id}
-                                className="ml-auto"
-                            />
-                        )}
+                        <div className="ml-auto flex items-center">
+                            {thisNode.type !== "user" && (
+                                <div className="relative mr-4">
+                                    <Menu>
+                                        <Menu.Button className="focus:outline-none">
+                                            <FiMoreVertical/>
+                                        </Menu.Button>
+                                        <Menu.Items className="absolute right-0 top-6 shadow-sm rounded z-10">
+                                            <Menu.Item>
+                                                {({active}) => (
+                                                    <Button
+                                                        className="bg-white px-4 py-3 text-sm rounded hover:bg-gray-50"
+                                                        childClassName="flex items-center"
+                                                        onClick={() => setIsDeleteOpen(true)}
+                                                    >
+                                                        <FiTrash className="mr-2"/>
+                                                        <span>Delete</span>
+                                                    </Button>
+                                                )}
+                                            </Menu.Item>
+                                        </Menu.Items>
+                                    </Menu>
+                                </div>
+                            )}
+                            <Modal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
+                                <H2>Delete node and children?</H2>
+                                <p className="mt-2 mb-6">Deleting the node will delete all sub-nodes within it. This action is permanent.</p>
+                                <div className="flex items-center">
+                                    <MainButton color="red" isLoading={isDeleteLoading} onClick={onDelete}>Delete</MainButton>
+                                    <MainButton containerClassName="ml-2" onClick={() => setIsDeleteOpen(false)} disabled={isDeleteLoading}>Cancel</MainButton>
+                                </div>
+                            </Modal>
+                            {thisNode.type !== "note" && (
+                                <NewNodeButtonAndModal
+                                    router={router}
+                                    addToast={addToast}
+                                    parentId={thisNode._id}
+                                />
+                            )}
+                        </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                         {data && data.nodes.map(node => (

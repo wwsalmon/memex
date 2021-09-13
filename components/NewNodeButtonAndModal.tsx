@@ -1,13 +1,15 @@
 import {Dispatch, SetStateAction, useState} from "react";
 import {NextRouter} from "next/router";
 import {NodeObjTypeOpts} from "../utils/types";
-import Modal from "./Modal";
+import Modal from "./style/Modal";
 import H3 from "./style/H3";
 import ItemButton from "./ItemButton";
 import axios from "axios";
 import showToast from "../utils/showToast";
 import {AddToast} from "react-toast-notifications";
 import Button from "./Button";
+import H2 from "./style/H2";
+import MainButton from "./style/MainButton";
 
 export default function NewNodeButtonAndModal({className, router, addToast, disabledOptions, parentId}: {
     className?: string,
@@ -36,15 +38,15 @@ export default function NewNodeButtonAndModal({className, router, addToast, disa
     }
     return (
         <>
-            <Button
+            <MainButton
                 onClick={() => setIsOpen(true)}
-                className="bg-purple-500 hover:bg-purple-700 py-2 px-3 rounded text-white text-sm hover:shadow-inner transition font-medium tracking-wide"
                 containerClassName={className || ""}
+                color="purple"
             >
                 + New node (n)
-            </Button>
+            </MainButton>
             <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
-                <h2 className="text-xl font-bold mb-2">New item</h2>
+                <H2>New item</H2>
                 <div className="grid grid-cols-4 gap-4 py-4 -mb-4 mt-4 -mx-4 px-4 bg-gray-100 rounded-b-lg border-t">
                     <H3>Note</H3>
                     <H3>Container</H3>

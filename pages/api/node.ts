@@ -136,7 +136,30 @@ const handler: NextApiHandler = nextApiEndpoint(
         }
     },
     async function deleteFunction(req, res, session, thisUser) {
+        const {id} = req.query;
 
+        const childrenGraph = await ParentLinkModel.aggregate([
+            {$match: {parentId: mongoose.Types.ObjectId(id.toString())}},
+            {
+                $graphLookup: {
+                    from: "parentlinks",
+                    startWith: "$childId",
+                    connectFromField: "childId",
+                    connectToField: "parentId",
+                    as: "children",
+                },
+            },
+        ]);
+
+        const allLinks = [...childrenGraph, ...childrenGraph.reduce((a, b) => [...a, ...b.children], [])];
+        const allNodeIds = allLinks.map(d => d.childId).filter((d, i, a) => a.findIndex(x => x.toString() === d.toString()) === i);
+        const deleteIds = [id, ...allNodeIds];
+
+        await NodeModel.deleteMany({_id: {$in: deleteIds}});
+
+        await ParentLinkModel.deleteMany({childId: {$in: deleteIds}});
+
+        return res200(res, {count: deleteIds.length});
     },
 )
 
