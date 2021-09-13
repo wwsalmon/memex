@@ -43,7 +43,7 @@ const NodeCrumb = ({id}: { id: string }) => {
             href={`/node/${id}`}
             className="px-2 py-1 mx-1 -ml-2 hover:bg-gray-100 block transition rounded text-gray-500 font-medium"
         >
-            {data ? data.node.title : "Loading..."}
+            {data ? (data.node.title || `Untitled ${node.type}`) : "Loading..."}
         </Button>
     );
 };
@@ -132,7 +132,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                         <span className="mr-3 text-gray-300 font-medium">&gt;</span>
                     </>
                 ))}
-                <span className="font-bold">{thisNode.title}</span>
+                <span className="font-bold">{thisNode.title || `Untitled ${thisNode.type}`}</span>
             </div>
             <div className="relative">
                 {!!linkChain.length && (
