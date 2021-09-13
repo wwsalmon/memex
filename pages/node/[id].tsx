@@ -43,7 +43,7 @@ const NodeCrumb = ({id}: { id: string }) => {
             href={`/node/${id}`}
             className="px-2 py-1 mx-1 -ml-2 hover:bg-gray-100 block transition rounded text-gray-500 font-medium"
         >
-            {data ? (data.node.title || `Untitled ${node.type}`) : "Loading..."}
+            {data ? (data.node.title || `Untitled ${data.node.type}`) : "Loading..."}
         </Button>
     );
 };
