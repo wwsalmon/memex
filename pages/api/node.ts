@@ -185,6 +185,8 @@ const handler: NextApiHandler = nextApiEndpoint(
 )
 
 async function nodeIsAuthed(nodeId: string, thisUser: DatedObj<NodeObj>): Promise<boolean> {
+    if (nodeId === thisUser._id.toString()) return true;
+
     const parentsGraph = await ParentLinkModel.aggregate([
         {$match: {childId: mongoose.Types.ObjectId(nodeId)}},
         {
