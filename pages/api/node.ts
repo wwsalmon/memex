@@ -1,17 +1,22 @@
 import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
-import {res200, res400, res404} from "next-response-helpers";
+import {res200, res400, res403, res404} from "next-response-helpers";
 import {NodeModel} from "../../models/Node";
 import {ParentLinkModel} from "../../models/ParentLink";
 import * as mongoose from "mongoose";
 import htmlDecode from "../../utils/htmlDecode";
 import {serialize} from "remark-slate";
+import {DatedObj, NodeObj} from "../../utils/types";
 
 const handler: NextApiHandler = nextApiEndpoint(
     async function getFunction(req, res, session, thisUser) {
         const {parentId, id, childCount} = req.query;
 
         if (id) {
+            const isAuthed = await nodeIsAuthed(id.toString(), thisUser);
+
+            if (!isAuthed) return res403(res);
+
             const thisNote = await NodeModel.findOne({_id: id.toString()});
 
             if (!thisNote) return res404(res);
@@ -20,6 +25,10 @@ const handler: NextApiHandler = nextApiEndpoint(
         }
 
         if (parentId) {
+            const isAuthed = await nodeIsAuthed(parentId.toString(), thisUser);
+
+            if (!isAuthed) return res403(res);
+
             let nodeLookupStages = [];
 
             if (childCount) nodeLookupStages = [
@@ -61,6 +70,10 @@ const handler: NextApiHandler = nextApiEndpoint(
         if (!id && !(["note", "bucket", "timeline", "blog", "comment", "user"].includes(type) && parentId)) return res400(res);
 
         if (id) {
+            const isAuthed = await nodeIsAuthed(id.toString(), thisUser);
+
+            if (!isAuthed) return res403(res);
+
             const thisNote = await NodeModel.findOne({_id: id});
             
             if (title) thisNote.title = title;
@@ -106,6 +119,10 @@ const handler: NextApiHandler = nextApiEndpoint(
 
             res200(res, {node: thisNote});
         } else {
+            const isAuthed = await nodeIsAuthed(parentId.toString(), thisUser);
+
+            if (!isAuthed) return res403(res);
+
             let newNode = {
                 title: title || "",
                 body: body || "",
@@ -138,6 +155,10 @@ const handler: NextApiHandler = nextApiEndpoint(
     async function deleteFunction(req, res, session, thisUser) {
         const {id} = req.query;
 
+        const isAuthed = await nodeIsAuthed(id.toString(), thisUser);
+
+        if (!isAuthed) return res403(res);
+
         const childrenGraph = await ParentLinkModel.aggregate([
             {$match: {parentId: mongoose.Types.ObjectId(id.toString())}},
             {
@@ -162,5 +183,25 @@ const handler: NextApiHandler = nextApiEndpoint(
         return res200(res, {count: deleteIds.length});
     },
 )
+
+async function nodeIsAuthed(nodeId: string, thisUser: DatedObj<NodeObj>): Promise<boolean> {
+    const parentsGraph = await ParentLinkModel.aggregate([
+        {$match: {childId: mongoose.Types.ObjectId(nodeId)}},
+        {
+            $graphLookup: {
+                from: "parentlinks",
+                startWith: "$parentId",
+                connectFromField: "parentId",
+                connectToField: "childId",
+                as: "parents",
+            },
+        },
+    ]);
+
+    const allLinks = [...parentsGraph, ...parentsGraph.reduce((a, b) => [...a, ...b.parents], [])];
+    const allNodeIds = allLinks.map(d => d.parentId.toString()).filter((d, i, a) => a.findIndex(x => x === d) === i);
+
+    return allNodeIds.includes(thisUser._id.toString());
+}
 
 export default handler;
