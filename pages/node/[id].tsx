@@ -9,7 +9,7 @@ import {DatedObj, NodeObj, ParentLinkObj, SlateNode} from "../../utils/types";
 import Container from "../../components/Container";
 import H1 from "../../components/style/H1";
 import Button from "../../components/Button";
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useCallback, useState} from "react";
 import {getInputStateProps} from "react-controlled-component-helpers";
 import axios from "axios";
 import showToast from "../../utils/showToast";
@@ -26,14 +26,14 @@ import Badge from "../../components/style/Badge";
 import {getBgClassFromType, getLetterFromType} from "../../utils/getInfoFromType";
 import Link from "next/link";
 import SlateEditor from "../../components/SlateEditor";
-import {Descendant} from "slate";
 import {useAutosave} from "react-autosave";
 import slateWordCount from "../../utils/slateWordCount";
 import {Menu} from "@headlessui/react";
-import {FiDelete, FiMoreVertical, FiTrash} from "react-icons/fi";
+import {FiMoreVertical, FiTrash} from "react-icons/fi";
 import Modal from "../../components/style/Modal";
 import MainButton from "../../components/style/MainButton";
 import H2 from "../../components/style/H2";
+import {getLinkChain} from "../../utils/getLinkChain";
 
 const NodeCrumb = ({id}: { id: string }) => {
     const {data, error} = useSWR(`/api/node?id=${id}`);
@@ -80,12 +80,6 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
         });
     }
 
-    function getLinkChain(startId: string) {
-        const thisLink = props.thisNodeLinks.find(d => d.childId === startId && d.primary === true);
-        if (!thisLink) return [];
-        return [thisLink, ...getLinkChain(thisLink.parentId)];
-    }
-
     function onDelete() {
         if (!(linkChain && linkChain.length > 0)) return;
 
@@ -102,7 +96,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
             });
     }
 
-    const linkChain = getLinkChain(thisNode._id);
+    const linkChain = getLinkChain(thisNode._id, props.thisNodeLinks);
 
     const {
         data,
