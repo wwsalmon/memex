@@ -3,6 +3,7 @@ module.exports = {
     purge: [
         './**/*.html',
         './**/*.tsx',
+        './**/*.ts',
     ],
     theme: {
         container: {
