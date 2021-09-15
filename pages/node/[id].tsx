@@ -34,6 +34,7 @@ import Modal from "../../components/style/Modal";
 import MainButton from "../../components/style/MainButton";
 import H2 from "../../components/style/H2";
 import {getLinkChain} from "../../utils/getLinkChain";
+import SEO from "../../components/SEO";
 
 const NodeCrumb = ({id}: { id: string }) => {
     const {data, error} = useSWR(`/api/node?id=${id}`);
@@ -119,6 +120,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
 
     return (
         <>
+            <SEO title={`${thisNode.title}${thisNode.type === "user" ? "'s profile" : ` by ${props.thisUser.title}`}`}/>
             <div className="fixed top-0 left-4 flex items-center h-16 z-10">
                 {linkChain.reverse().map((d, i) => (
                     <>

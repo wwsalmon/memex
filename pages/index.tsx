@@ -1,5 +1,10 @@
+import SEO from "../components/SEO";
+
 export default function Home() {
     return (
-        <p>Hello world</p>
+        <>
+            <SEO/>
+            <p>Hello world</p>
+        </>
     );
 }
