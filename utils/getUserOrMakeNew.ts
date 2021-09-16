@@ -2,6 +2,7 @@ import {Session} from "next-auth";
 import dbConnect from "./dbConnect";
 import {NodeModel} from "../models/Node";
 import mongoose from "mongoose";
+import {ParentLinkModel} from "../models/ParentLink";
 
 export default async function getUserOrMakeNew(session: Session) {
     try {
@@ -20,6 +21,12 @@ export default async function getUserOrMakeNew(session: Session) {
             body: session.user.email,
             image: session.user.image,
             urlName: newId,
+        });
+
+        await ParentLinkModel.create({
+            parentId: process.env.NEXT_PUBLIC_GENESIS_ID,
+            childId: newUser._id,
+            primary: true,
         });
 
         return {data: newUser};

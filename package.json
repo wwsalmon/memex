@@ -20,6 +20,7 @@
     "is-url": "^1.2.4",
     "jsdom": "^17.0.0",
     "mongoose": "^5.12.13",
+    "mousetrap": "^1.6.5",
     "next": "^11.1.0",
     "next-auth": "^3.25.0",
     "next-response-helpers": "^0.1.3",

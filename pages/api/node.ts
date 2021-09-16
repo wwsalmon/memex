@@ -7,10 +7,11 @@ import * as mongoose from "mongoose";
 import htmlDecode from "../../utils/htmlDecode";
 import {serialize} from "remark-slate";
 import {DatedObj, NodeObj} from "../../utils/types";
+import {ParentLinksWithNodesModel} from "../../models/ParentLinksWithNodes";
 
 const handler: NextApiHandler = nextApiEndpoint(
     async function getFunction(req, res, session, thisUser) {
-        const {parentId, id, childCount} = req.query;
+        const {parentId, id, searchQuery, childCount} = req.query;
 
         if (id) {
             const isAuthed = await nodeIsAuthed(id.toString(), thisUser);
@@ -60,6 +61,38 @@ const handler: NextApiHandler = nextApiEndpoint(
             const nodesArr = lookupObj.map(link => link.nodesArr[0]);
 
             return res200(res, {nodes: nodesArr});
+        }
+
+        if (searchQuery) {
+            const lookupObj = await ParentLinksWithNodesModel.aggregate([
+                {$match: {childId: mongoose.Types.ObjectId(thisUser._id.toString())}},
+                {
+                    $graphLookup: {
+                        from: "parentlinkswithnodes",
+                        startWith: "$childId",
+                        connectFromField: "childId",
+                        connectToField: "parentId",
+                        as: "children",
+                    },
+                },
+                {
+                    $unwind: {
+                        path: "$children",
+                    },
+                },
+                {
+                    $match: {
+                        $expr: {
+                            $regexMatch: {input: "$children.node.title", regex: `.*${searchQuery}.*`, options: "i"},
+                        },
+                    }
+                },
+                {$limit: 10},
+            ]);
+
+            const matchingNodes = lookupObj.map(d => d.children ? d.children.node : d.node);
+
+            return res200(res, {nodes: matchingNodes});
         }
 
         return res400(res);
