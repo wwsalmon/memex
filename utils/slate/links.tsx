@@ -4,6 +4,10 @@ import {SlateNode} from "../types";
 import {useEffect, useRef, useState} from "react";
 import {ReactEditor, useSlate} from "slate-react";
 import ReactDOM from "react-dom";
+import Button from "../../components/Button";
+import {FiEdit2} from "react-icons/fi";
+import {BiUnlink} from "react-icons/bi";
+import normalizeUrl from "normalize-url";
 
 export const withLinks = editor => {
     const {insertData, insertText, isInline} = editor;
@@ -35,7 +39,7 @@ export const withLinks = editor => {
 
 export const insertLink = (editor, url) => {
     if (editor.selection) {
-        wrapLink(editor, url);
+        wrapLink(editor, normalizeUrl(url));
     }
 };
 
@@ -80,11 +84,27 @@ const wrapLink = (editor, url) => {
     }
 };
 
+const updateLink = (editor, url) => {
+    const {selection} = editor;
+
+    const activeLink = getActiveLink(editor);
+
+    if (!activeLink) return;
+
+    const path = activeLink[1];
+
+    Transforms.select(editor, path);
+    unwrapLink(editor);
+    wrapLink(editor, normalizeUrl(url));
+    Transforms.setSelection(editor, selection);
+}
+
 export const SlateLinkBalloon = () => {
     const ref = useRef<HTMLDivElement | null>();
     const editor = useSlate();
 
     const [link, setLink] = useState<string>("");
+    const [newLink, setNewLink] = useState<string>("");
 
     useEffect(() => {
         const el = ref.current;
@@ -100,14 +120,19 @@ export const SlateLinkBalloon = () => {
             !ReactEditor.isFocused(editor as ReactEditor) ||
             !activeLink
         ) {
-            el.removeAttribute("style");
+            el.style.opacity = "0";
+            setTimeout(() => {
+                el.style.display = "none";
+            }, 200);
             return;
         }
 
         setLink(activeLink[0].url);
+        setNewLink(activeLink[0].url);
         const domSelection = window.getSelection();
         const domRange = domSelection.getRangeAt(0);
         const rect = domRange.getBoundingClientRect();
+        el.style.display = "flex";
         el.style.opacity = "1";
         el.style.top = `${rect.top + window.pageYOffset - el.offsetHeight - 8}px`;
         el.style.left = `${rect.left +
@@ -118,8 +143,23 @@ export const SlateLinkBalloon = () => {
 
     return (
         <Portal>
-            <div ref={ref} className="absolute transition-all bg-gray-100 p-2 rounded shadow-md">
-                <a href={link}>{link}</a>
+            <div ref={ref} className="absolute transition-all bg-gray-100 p-2 rounded shadow-md flex items-center">
+                <a className="underline font-medium" href={link}>{link}</a>
+                <Button
+                    containerClassName="ml-2 flex items-center"
+                    className="p-1"
+                    onMouseDown={e => {
+                        e.preventDefault();
+                        const url = window.prompt("Edit the URL of the link:", link);
+                        if (!url) return;
+                        updateLink(editor, url);
+                    }}
+                ><FiEdit2/></Button>
+                <Button
+                    containerClassName="ml-2 flex items-center"
+                    className="p-1"
+                    onClick={() => unwrapLink(editor)}
+                ><BiUnlink/></Button>
             </div>
         </Portal>
     );

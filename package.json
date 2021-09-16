@@ -24,6 +24,7 @@
     "next-auth": "^3.25.0",
     "next-response-helpers": "^0.1.3",
     "next-seo": "^4.24.0",
+    "normalize-url": "^7.0.2",
     "nprogress": "^0.2.0",
     "react": "17.0.2",
     "react-autosave": "^0.2.2",
