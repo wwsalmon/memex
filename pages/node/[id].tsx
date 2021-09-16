@@ -40,12 +40,14 @@ const NodeCrumb = ({id}: { id: string }) => {
     const {data, error} = useSWR(`/api/node?id=${id}`);
 
     return (
-        <Button
-            href={`/node/${id}`}
-            className="px-2 py-1 mx-1 -ml-2 hover:bg-gray-100 block transition rounded text-gray-500 font-medium"
-        >
-            {data ? (data.node.title || `Untitled ${data.node.type}`) : "Loading..."}
-        </Button>
+        <Link href={`/node/${id}`}>
+            <a
+                className="px-2 py-1 mx-1 -ml-2 hover:bg-gray-100 block transition rounded text-gray-500 font-medium truncate"
+                style={{maxWidth: "16rem"}}
+            >
+                {data ? (data.node.title || `Untitled ${data.node.type}`) : "Loading..."}
+            </a>
+        </Link>
     );
 };
 
@@ -128,7 +130,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                         <span className="mr-3 text-gray-300 font-medium">&gt;</span>
                     </>
                 ))}
-                <span className="font-bold">{thisNode.title || `Untitled ${thisNode.type}`}</span>
+                <span className="font-bold truncate" style={{maxWidth: "16rem"}}>{thisNode.title || `Untitled ${thisNode.type}`}</span>
             </div>
             <div className="relative">
                 {!!linkChain.length && (
