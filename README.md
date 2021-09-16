@@ -19,5 +19,6 @@ To run in dev mode, create a `.env` file with the following variables:
 - GOOGLE_CLIENT_ID
 - GOOGLE_CLIENT_SECRET
 - NEXTAUTH_URL
+- NEXT_PUBLIC_GENESIS_ID
 
 Then run `npm run dev`.
