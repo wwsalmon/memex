@@ -6,12 +6,13 @@ import {SlateNode} from "../utils/types";
 import {SlateLinkBalloon, withLinks} from "../utils/slate/links";
 import {withShortcuts} from "../utils/slate/shortcuts";
 import {onKeyDown} from "../utils/slate/hotkeys";
+import {withCodeblocks} from "../utils/slate/codeblocks";
 
 export default function SlateEditor({value, setValue}: {
     value: SlateNode[],
     setValue: Dispatch<SetStateAction<SlateNode[]>>
 }) {
-    const [editor] = useState<ReactEditor & HistoryEditor>(withLinks(withShortcuts(withHistory(withReact(createEditor() as ReactEditor)))));
+    const [editor] = useState<ReactEditor & HistoryEditor>(withCodeblocks(withLinks(withShortcuts(withHistory(withReact(createEditor() as ReactEditor))))));
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 

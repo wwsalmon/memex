@@ -58,7 +58,7 @@ const toggleBlock = (editor, format) => {
     }
 };
 
-const isBlockActive = (editor, format) => {
+export const isBlockActive = (editor, format) => {
     // @ts-ignore
     const [match] = Editor.nodes(editor, {
         match: n =>
