@@ -146,11 +146,11 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                     className={`${thisNode.type === "note" ? "bg-white" : "bg-gray-100"} rounded-md border py-8 my-20 relative z-5`}
                 >
                     <div className="flex mb-8">
-                        <div>
+                        <div className="w-full">
                             {isEditTitle ? (
                                 <>
                                     <input
-                                        className="font-bold text-3xl -m-2 p-2 border rounded" {...getInputStateProps(title, setTitle)}
+                                        className="font-bold text-3xl -m-2 p-2 border rounded w-full" {...getInputStateProps(title, setTitle)}
                                         onKeyDown={e => {
                                             if (e.key === "Escape") {
                                                 setTitle(prevTitle);
@@ -172,7 +172,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                                 </>
                             ) : (
                                 <Button
-                                    className="-m-2 p-2 hover:bg-gray-200 transition"
+                                    className="-m-2 p-2 hover:bg-gray-200 transition text-left"
                                     onClick={() => setIsEditTitle(true)}
                                 >
                                     <H1>{thisNode.title ||
