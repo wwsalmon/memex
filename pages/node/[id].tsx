@@ -120,6 +120,23 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
             .finally(() => setIsSaving(false));
     }, []), interval: 1000});
 
+    useAutosave({data: title, onSave: useCallback((value) => {
+        if (!isEditTitleLoading) {
+            setIsEditTitleLoading(true);
+
+            axios.post("/api/node", {
+                id: thisNode._id,
+                title: value,
+            }).then(res => {
+                setThisNode(res.data.node);
+            }).catch(e => {
+                showToast(false, e.message, addToast);
+            }).finally(() => {
+                setIsEditTitleLoading(false);
+            });
+        }
+    }, []), interval: 500});
+
     return (
         <>
             <SEO title={`${thisNode.title}${thisNode.type === "user" ? "'s profile" : ` by ${props.thisUser.title}`}`}/>
@@ -168,9 +185,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                                             return setIsEditTitle(false);
                                         }}
                                     />
-                                    {title !== prevTitle && (
-                                        <p className="text-sm mt-3">{isEditTitleLoading ? "Saving..." : `Press "Enter" to save`}</p>
-                                    )}
+                                    <p className="text-sm mt-3">{isEditTitleLoading ? "Saving..." : title === prevTitle ? "Saved" : "Unsaved changes"}</p>
                                 </>
                             ) : (
                                 <Button
