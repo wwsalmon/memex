@@ -3,7 +3,7 @@ import {createEditor} from "slate";
 import {HistoryEditor, withHistory} from "slate-history";
 import {Dispatch, SetStateAction, useCallback, useState} from "react";
 import {SlateNode} from "../utils/types";
-import {withLinks} from "../utils/slate/links";
+import {SlateLinkBalloon, withLinks} from "../utils/slate/links";
 import {withShortcuts} from "../utils/slate/shortcuts";
 import {onKeyDown} from "../utils/slate/hotkeys";
 
@@ -27,6 +27,7 @@ export default function SlateEditor({value, setValue}: {
                     autoFocus
                     onKeyDown={event => onKeyDown(event, editor)}
                 />
+                <SlateLinkBalloon/>
             </Slate>
         </div>
     );
