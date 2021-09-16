@@ -9,7 +9,7 @@ import slateWordCount from "../utils/slateWordCount";
 const NodeCard = ({node}: {node: DatedObj<NodeObj> & { linksArr: DatedObj<ParentLinkObj>[]}}) => (
     <Button href={`/node/${node._id}`}>
         <Card>
-            <H3>{node.title || <span className="text-gray-400">Untitled {node.type}</span>}</H3>
+            <H3 className="truncate w-100">{node.title || <span className="text-gray-400">Untitled {node.type}</span>}</H3>
             <p className="text-gray-500 truncate h-6">{node.body || <span className="text-gray-400">No description</span>}</p>
             <div className="flex items-center mt-4 text-sm">
                 <Badge bgClass={getBgClassFromType(node.type)}>{getLetterFromType(node.type)}</Badge>
