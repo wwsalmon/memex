@@ -55,6 +55,8 @@ const Element = ({attributes, children, element}) => {
             return <ol {...attributes}>{children}</ol>;
         case "a":
             return <a {...attributes} href={element.url}>{children}</a>;
+        case "codeblock":
+            return <pre {...attributes}><code>{children}</code></pre>;
         default:
             return <p {...attributes}>{children}</p>;
     }

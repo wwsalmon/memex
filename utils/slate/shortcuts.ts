@@ -23,6 +23,7 @@ const mdShortcuts = {
     "#####": "heading-five",
     "######": "heading-six",
     "1.": "numbered-li",
+    "```": "codeblock",
 };
 
 export const withShortcuts = editor => {
