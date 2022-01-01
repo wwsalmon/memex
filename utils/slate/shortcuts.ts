@@ -1,5 +1,6 @@
 import {Editor, Element as SlateElement, Point, Range, Transforms} from "slate";
 import {SlateNode} from "../types";
+import {onShortcutDeleteBackwardsList, onShortcutSpaceList} from "./list";
 
 export type BulletedListElement = {
     type: "ul",
@@ -32,6 +33,7 @@ export const withShortcuts = editor => {
     editor.insertText = text => {
         const {selection} = editor;
 
+        // if inserting space and cursor is collapsed
         if (text === " " && selection && Range.isCollapsed(selection)) {
             const {anchor} = selection;
             const block = Editor.above(editor, {
@@ -54,33 +56,7 @@ export const withShortcuts = editor => {
                     match: n => Editor.isBlock(editor, n),
                 });
 
-                if (type === "li") {
-                    const list: BulletedListElement = {
-                        type: "ul",
-                        children: [],
-                    };
-                    Transforms.wrapNodes(editor, list, {
-                        match: n =>
-                            !Editor.isEditor(n) &&
-                            SlateElement.isElement(n) &&
-                            // @ts-ignore
-                            n.type === "li",
-                    });
-                }
-
-                if (type === "numbered-li") {
-                    const list: NumberedListElement = {
-                        type: "ol",
-                        children: [],
-                    };
-                    Transforms.wrapNodes(editor, list, {
-                        match: n =>
-                            !Editor.isEditor(n) &&
-                            SlateElement.isElement(n) &&
-                            // @ts-ignore
-                            n.type === "numbered-li",
-                    });
-                }
+                onShortcutSpaceList(editor, type);
 
                 return;
             }
@@ -115,28 +91,7 @@ export const withShortcuts = editor => {
                     Transforms.setNodes(editor, newProperties);
 
                     // @ts-ignore
-                    if (block.type === "li") {
-                        Transforms.unwrapNodes(editor, {
-                            match: n =>
-                                !Editor.isEditor(n) &&
-                                SlateElement.isElement(n) &&
-                                // @ts-ignore
-                                n.type === "ul",
-                            split: true,
-                        });
-                    }
-
-                    // @ts-ignore
-                    if (block.type === "numbered-li") {
-                        Transforms.unwrapNodes(editor, {
-                            match: n =>
-                                !Editor.isEditor(n) &&
-                                SlateElement.isElement(n) &&
-                                // @ts-ignore
-                                n.type === "ol",
-                            split: true,
-                        });
-                    }
+                    onShortcutDeleteBackwardsList(editor, block.type);
 
                     return;
                 }

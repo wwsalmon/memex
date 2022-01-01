@@ -3,10 +3,10 @@ import {createEditor} from "slate";
 import {HistoryEditor, withHistory} from "slate-history";
 import {Dispatch, SetStateAction, useCallback, useState} from "react";
 import {SlateNode} from "../utils/types";
-import {SlateLinkBalloon, withLinks} from "../utils/slate/links";
+import {SlateLinkBalloon, withLinks} from "../utils/slate/link";
 import {withShortcuts} from "../utils/slate/shortcuts";
 import {onKeyDown} from "../utils/slate/hotkeys";
-import {withCodeblocks} from "../utils/slate/codeblocks";
+import {withCodeblocks} from "../utils/slate/codeblock";
 import {onEnter} from "../utils/slate/onEnter";
 
 export default function SlateEditor({value, setValue}: {

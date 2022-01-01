@@ -3,7 +3,7 @@ import isHotkey from "is-hotkey";
 import {ReactEditor} from "slate-react";
 import {HistoryEditor} from "slate-history";
 import {KeyboardEvent} from "react";
-import {insertLink} from "./links";
+import {insertLink} from "./link";
 
 const markHotkeys = {
     "mod+b": "bold",
