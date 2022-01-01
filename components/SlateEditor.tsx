@@ -7,7 +7,7 @@ import {SlateLinkBalloon, withLinks} from "../utils/slate/links";
 import {withShortcuts} from "../utils/slate/shortcuts";
 import {onKeyDown} from "../utils/slate/hotkeys";
 import {withCodeblocks} from "../utils/slate/codeblocks";
-import {checkForSoftBreak} from "../utils/slate/softbreak";
+import {onEnter} from "../utils/slate/onEnter";
 
 export default function SlateEditor({value, setValue}: {
     value: SlateNode[],
@@ -29,7 +29,7 @@ export default function SlateEditor({value, setValue}: {
                     autoFocus
                     onKeyDown={event => {
                         onKeyDown(event, editor);
-                        checkForSoftBreak(event, editor);
+                        onEnter(event, editor);
                     }}
                 />
                 <SlateLinkBalloon/>
