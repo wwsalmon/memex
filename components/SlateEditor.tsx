@@ -5,7 +5,7 @@ import {Dispatch, SetStateAction, useCallback, useState} from "react";
 import {SlateNode} from "../utils/types";
 import {SlateLinkBalloon, withLinks} from "../utils/slate/link";
 import {withShortcuts} from "../utils/slate/shortcuts";
-import {onKeyDown} from "../utils/slate/hotkeys";
+import {onHotkey} from "../utils/slate/hotkeys";
 import {withCodeblocks} from "../utils/slate/codeblock";
 import {onEnter} from "../utils/slate/onEnter";
 
@@ -28,7 +28,7 @@ export default function SlateEditor({value, setValue}: {
                     spellCheck
                     autoFocus
                     onKeyDown={event => {
-                        onKeyDown(event, editor);
+                        onHotkey(event, editor);
                         onEnter(event, editor);
                     }}
                 />

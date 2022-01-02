@@ -69,7 +69,7 @@ export const isBlockActive = (editor, format) => {
     return !!match;
 };
 
-export const onKeyDown = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor & HistoryEditor) => {
+export const onHotkey = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor & HistoryEditor) => {
     for (const hotkey in markHotkeys) {
         if (isHotkey(hotkey, e)) {
             event.preventDefault();
