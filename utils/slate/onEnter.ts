@@ -2,6 +2,8 @@ import {KeyboardEvent} from "react";
 import {ReactEditor} from "slate-react";
 import {HistoryEditor} from "slate-history";
 import {Transforms, Node} from "slate";
+import {onEnterEOLList} from "./list";
+import insertEmptyLine from "./insertEmptyLine";
 
 export const onEnter = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor & HistoryEditor) => {
     if (e.key !== "Enter") return false;
@@ -13,11 +15,8 @@ export const onEnter = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor & 
 
         // @ts-ignore
         if (selectedLeaf.text.length === editor.selection.anchor.offset) {
-            const newLine = {
-                type: "p",
-                children: [{text: ""}],
-            };
-            Transforms.insertNodes(editor, newLine);
+            if (onEnterEOLList(editor)) return true;
+            insertEmptyLine(editor);
         } else {
             Transforms.splitNodes(editor);
             // @ts-ignore
