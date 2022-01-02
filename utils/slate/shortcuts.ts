@@ -48,11 +48,9 @@ export const withShortcuts = editor => {
             if (type) {
                 Transforms.select(editor, range);
                 Transforms.delete(editor);
-                const newProperties: Partial<SlateElement> = {
-                    // @ts-ignore
-                    type,
-                };
-                Transforms.setNodes(editor, newProperties, {
+
+                // @ts-ignore
+                Transforms.setNodes(editor, {type}, {
                     match: n => Editor.isBlock(editor, n),
                 });
 
