@@ -94,16 +94,21 @@ export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
         // @ts-ignore
         if (block[0].children && block[0].children.length && block[0].children[0].text === "") {
             Transforms.unwrapNodes(editor, {
-                match: n =>
-                    
-                    
-                    // @ts-ignore
-                    n.type === (isNumbered ? "ol" : "ul"),
+                // @ts-ignore
+                match: n => n.type === (isNumbered ? "ol" : "ul"),
                 split: true,
             });
 
             // @ts-ignore
-            Transforms.setNodes(editor, {type: "p"});
+            const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
+            const level1 = thisLevels.next();
+
+            // if parent after unwrapping is not list, turn the node into a p, otherwise keep it a list item
+            // @ts-ignore
+            if (!(level1.value && level1.value.length && isListNode(level1.value[0].type))) {
+                // @ts-ignore
+                Transforms.setNodes(editor, {type: "p"});
+            }
 
             return true;
         }
