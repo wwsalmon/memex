@@ -1,6 +1,6 @@
 import {ReactEditor} from "slate-react";
 import {HistoryEditor} from "slate-history";
-import {Editor, Element as SlateElement, Transforms} from "slate";
+import {Editor, Element as SlateElement, Node, Transforms} from "slate";
 import insertEmptyLine from "./insertEmptyLine";
 import {KeyboardEvent} from "react";
 
@@ -67,7 +67,7 @@ export const onShortcutDeleteBackwardsList = (editor: ReactEditor & HistoryEdito
     }
 }
 
-export const onEnterEOLList = (editor: ReactEditor & HistoryEditor) => {
+export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
     const block = Editor.above(editor, {
         match: n => Editor.isBlock(editor, n),
     });
@@ -80,8 +80,12 @@ export const onEnterEOLList = (editor: ReactEditor & HistoryEditor) => {
     const isList = type === "li" || type === "numbered-li";
     const isNumbered = type === "numbered-li";
 
-    // if type is li then insert another li, if the li is empty then break out of the larger ul
-    if (isList) {
+    const selectedLeaf = Node.descendant(editor, editor.selection.anchor.path);
+
+    if (!isList) return false;
+
+    // @ts-ignore
+    if (selectedLeaf.text.length === editor.selection.anchor.offset) {
         // if empty li
         // @ts-ignore
         if (block[0].children && block[0].children.length && block[0].children[0].text === "") {
@@ -101,11 +105,11 @@ export const onEnterEOLList = (editor: ReactEditor & HistoryEditor) => {
         }
 
         insertEmptyLine(editor, isNumbered ? "numbered-li" : "li");
-
-        return true;
     } else {
-        return false;
+        Transforms.splitNodes(editor);
     }
+
+    return true;
 }
 
 export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor & HistoryEditor) => {
