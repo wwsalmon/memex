@@ -76,8 +76,6 @@ export const withShortcuts = editor => {
                 const start = Editor.start(editor, path);
 
                 if (
-                    !Editor.isEditor(block) &&
-                    SlateElement.isElement(block) &&
                     // @ts-ignore
                     block.type !== "p" &&
                     Point.equals(selection.anchor, start)

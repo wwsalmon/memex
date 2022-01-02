@@ -42,7 +42,7 @@ const toggleBlock = (editor, format) => {
         match: n =>
             ["ul", "ol"].includes(
                 // @ts-ignore
-                !Editor.isEditor(n) && SlateElement.isElement(n) && n.type
+                n.type
             ),
         split: true,
     });
@@ -63,7 +63,7 @@ export const isBlockActive = (editor, format) => {
     const [match] = Editor.nodes(editor, {
         match: n =>
             // @ts-ignore
-            !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format,
+            n.type === format,
     });
 
     return !!match;

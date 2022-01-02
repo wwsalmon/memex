@@ -48,7 +48,7 @@ const getActiveLink = editor => {
     const [link] = Editor.nodes(editor, {
         match: n =>
             // @ts-ignore
-            !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === "a",
+            n.type === "a",
     });
     return link;
 };
@@ -57,7 +57,7 @@ const unwrapLink = editor => {
     Transforms.unwrapNodes(editor, {
         match: n =>
             // @ts-ignore
-            !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === "a",
+            n.type === "a",
     });
 };
 

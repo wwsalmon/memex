@@ -12,7 +12,7 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
         // get current block
         const block = Editor.above(editor, {
             // @ts-ignore
-            match: n => ["ul", "ol"].includes(Editor.isBlock(editor, n) && SlateElement.isElement(n) && n.type),
+            match: n => ["ul", "ol"].includes(Editor.isBlock(editor, n) && n.type),
         });
 
         if (block) {
@@ -26,8 +26,8 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
             if (currType === (isNumbered ? "ul" : "ol")) {
                 Transforms.unwrapNodes(editor, {
                     match: n =>
-                        !Editor.isEditor(n) &&
-                        SlateElement.isElement(n) &&
+                        
+                        
                         // @ts-ignore
                         n.type === (isNumbered ? "ul" : "ol"),
                     split: true,
@@ -42,8 +42,8 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
 
         Transforms.wrapNodes(editor, list, {
             match: n =>
-                !Editor.isEditor(n) &&
-                SlateElement.isElement(n) &&
+                
+                
                 // @ts-ignore
                 n.type === (isNumbered ? "numbered-li" : "li"),
         });
@@ -58,8 +58,8 @@ export const onShortcutDeleteBackwardsList = (editor: ReactEditor & HistoryEdito
     if (isList) {
         Transforms.unwrapNodes(editor, {
             match: n =>
-                !Editor.isEditor(n) &&
-                SlateElement.isElement(n) &&
+                
+                
                 // @ts-ignore
                 n.type === (isNumbered ? "ol" : "ul"),
             split: true,
@@ -91,8 +91,8 @@ export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
         if (block[0].children && block[0].children.length && block[0].children[0].text === "") {
             Transforms.unwrapNodes(editor, {
                 match: n =>
-                    !Editor.isEditor(n) &&
-                    SlateElement.isElement(n) &&
+                    
+                    
                     // @ts-ignore
                     n.type === (isNumbered ? "ol" : "ul"),
                 split: true,
@@ -148,8 +148,8 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
 
         Transforms.unwrapNodes(editor, {
             match: n =>
-                !Editor.isEditor(n) &&
-                SlateElement.isElement(n) &&
+                
+                
                 // @ts-ignore
                 n.type === (isNumbered ? "ol" : "ul"),
             split: true,
@@ -171,8 +171,8 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
         // @ts-ignore
         Transforms.wrapNodes(editor, list, {
             match: n =>
-                !Editor.isEditor(n) &&
-                SlateElement.isElement(n) &&
+                
+                
                 // @ts-ignore
                 n.type === (isNumbered ? "numbered-li" : "li"),
         });
