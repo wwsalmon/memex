@@ -1,6 +1,6 @@
 import {Editor, Element as SlateElement, Point, Range, Transforms} from "slate";
 import {SlateNode} from "../types";
-import {onShortcutDeleteBackwardsList, onShortcutSpaceList} from "./list";
+import {onDeleteBackwardsList, onShortcutSpaceList} from "./list";
 
 export type BulletedListElement = {
     type: "ul",
@@ -80,14 +80,14 @@ export const withShortcuts = editor => {
                     block.type !== "p" &&
                     Point.equals(selection.anchor, start)
                 ) {
+                    // @ts-ignore
+                    if (onDeleteBackwardsList(editor, block.type)) return;
+
                     const newProperties: Partial<SlateElement> = {
                         // @ts-ignore
                         type: "p",
                     };
                     Transforms.setNodes(editor, newProperties);
-
-                    // @ts-ignore
-                    onShortcutDeleteBackwardsList(editor, block.type);
 
                     return;
                 }

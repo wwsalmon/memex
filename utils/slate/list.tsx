@@ -50,21 +50,25 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
     }
 }
 
-export const onShortcutDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type: string) => {
+export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type: string) => {
     const isList = type === "li" || type === "numbered-li";
     const isNumbered = type === "numbered-li";
 
     // @ts-ignore
     if (isList) {
         Transforms.unwrapNodes(editor, {
-            match: n =>
-                
-                
-                // @ts-ignore
-                n.type === (isNumbered ? "ol" : "ul"),
+            // @ts-ignore
+            match: n => n.type === (isNumbered ? "ol" : "ul"),
             split: true,
         });
     }
+
+    // @ts-ignore
+    const thisLevels = Editor.levels(editor, {match: n => ["ul", "ol"].includes(n.type), reverse: true});
+    const level1 = thisLevels.next();
+
+    // @ts-ignore
+    return level1.value && level1.value.length && ["ul", "ol"].includes(level1.value[0].type);
 }
 
 export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
@@ -132,8 +136,7 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
     e.preventDefault();
 
     // @ts-ignore
-    const thisLevels = Editor.levels(editor, {match: n => ["ul", "ol", "li", "numbered-li"].includes(n.type), reverse: true});
-    thisLevels.next();
+    const thisLevels = Editor.levels(editor, {match: n => ["ul", "ol"].includes(n.type), reverse: true});
     const level1 = thisLevels.next();
     const level2 = thisLevels.next();
 
