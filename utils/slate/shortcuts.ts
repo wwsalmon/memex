@@ -96,9 +96,9 @@ export const withShortcuts = editor => {
                     return;
                 }
             }
-
-            deleteBackward(...args);
         }
+
+        deleteBackward(...args);
     };
 
     return editor;

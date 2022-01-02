@@ -28,3 +28,7 @@ body {
     0% { transform: rotate(0deg); }
     100% {transform: rotate(360deg); }
 }
+
+ul {border: 1px solid red}
+ol {border: 1px solid green}
+li {border: 1px solid blue}
