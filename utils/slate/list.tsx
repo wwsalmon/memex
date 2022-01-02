@@ -14,24 +14,24 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
             match: n => ["ul", "ol"].includes(Editor.isBlock(editor, n) && SlateElement.isElement(n) && n.type),
         });
 
-        if (!block) return false;
+        if (block) {
+            // @ts-ignore
+            const currType = block[0].type;
 
-        // @ts-ignore
-        const currType = block[0].type;
+            // if already in the correct block, don't double-nest
+            if (currType === (isNumbered ? "ol" : "ul")) return false;
 
-        // if already in the correct block, don't double-nest
-        if (currType === (isNumbered ? "ol" : "ul")) return false;
-
-        // if in the opposite type of list, unwrap first
-        if (currType === (isNumbered ? "ul" : "ol")) {
-            Transforms.unwrapNodes(editor, {
-                match: n =>
-                    !Editor.isEditor(n) &&
-                    SlateElement.isElement(n) &&
-                    // @ts-ignore
-                    n.type === (isNumbered ? "ul" : "ol"),
-                split: true,
-            });
+            // if in the opposite type of list, unwrap first
+            if (currType === (isNumbered ? "ul" : "ol")) {
+                Transforms.unwrapNodes(editor, {
+                    match: n =>
+                        !Editor.isEditor(n) &&
+                        SlateElement.isElement(n) &&
+                        // @ts-ignore
+                        n.type === (isNumbered ? "ul" : "ol"),
+                    split: true,
+                });
+            }
         }
 
         const list = {
