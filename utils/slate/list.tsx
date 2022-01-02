@@ -54,21 +54,45 @@ export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type:
     const isList = type === "li" || type === "numbered-li";
     const isNumbered = type === "numbered-li";
 
-    // @ts-ignore
-    if (isList) {
-        Transforms.unwrapNodes(editor, {
+    if (!isList) return false;
+
+    const thisPath = editor.selection.anchor.path;
+    const thisIndex = thisPath[thisPath.length - 2];
+
+    // if first item in list, unwrap and handle normally; else merge with item above
+    if (thisIndex === 0) {
+        // @ts-ignore
+        if (isList) {
+            Transforms.unwrapNodes(editor, {
+                // @ts-ignore
+                match: n => n.type === (isNumbered ? "ol" : "ul"),
+                split: true,
+            });
+        }
+
+        // @ts-ignore
+        const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
+        const level1 = thisLevels.next();
+        // @ts-ignore
+        return level1.value && level1.value.length && isListNode(level1.value[0].type);
+    } else {
+        const prevNode = thisIndex === 0 ? null : Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1]);
+        // @ts-ignore
+        const isPrevList = prevNode && isListNode(prevNode[0].type);
+        const thisNodePath = thisPath.slice(0, thisPath.length - 1);
+
+        // if prevNode is list, merge with it; otherwise just return false
+        if (isPrevList) {
             // @ts-ignore
-            match: n => n.type === (isNumbered ? "ol" : "ul"),
-            split: true,
-        });
+            const toPath = [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1, prevNode[0].children.length];
+
+            Transforms.moveNodes(editor, {match: (node, path) => JSON.stringify(path) === JSON.stringify(thisNodePath), to: toPath});
+        } else {
+            Transforms.mergeNodes(editor, {at: thisNodePath});
+        }
+
+        return true;
     }
-
-    // @ts-ignore
-    const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
-    const level1 = thisLevels.next();
-
-    // @ts-ignore
-    return level1.value && level1.value.length && isListNode(level1.value[0].type);
 }
 
 export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
