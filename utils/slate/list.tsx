@@ -62,10 +62,18 @@ export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type:
         // @ts-ignore
         return level1.value && level1.value.length && isListNode(level1.value[0].type);
     } else {
+        const thisNodePath = thisPath.slice(0, thisPath.length - 1);
+        const thisLeaf = Editor.leaf(editor, thisPath);
+
+        // if empty list item in middle of list delete the block
+        if (thisLeaf[0].text === "") {
+            Transforms.removeNodes(editor, {at: thisNodePath});
+            return true;
+        }
+
         const prevNode = thisIndex === 0 ? null : Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1]);
         // @ts-ignore
         const isPrevList = prevNode && isListNode(prevNode[0].type);
-        const thisNodePath = thisPath.slice(0, thisPath.length - 1);
 
         // if prevNode is list, merge with it; otherwise just return false
         if (isPrevList) {
