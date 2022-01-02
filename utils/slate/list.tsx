@@ -1,6 +1,6 @@
 import {ReactEditor} from "slate-react";
 import {HistoryEditor} from "slate-history";
-import {Editor, Element as SlateElement, Node, Transforms} from "slate";
+import {Editor, Node, Transforms} from "slate";
 import insertEmptyLine from "./insertEmptyLine";
 import {KeyboardEvent} from "react";
 
@@ -12,7 +12,7 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
         // get current block
         const block = Editor.above(editor, {
             // @ts-ignore
-            match: n => ["ul", "ol"].includes(Editor.isBlock(editor, n) && n.type),
+            match: n => isListNode(Editor.isBlock(editor, n) && n.type),
         });
 
         if (block) {
@@ -64,11 +64,11 @@ export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type:
     }
 
     // @ts-ignore
-    const thisLevels = Editor.levels(editor, {match: n => ["ul", "ol"].includes(n.type), reverse: true});
+    const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
     const level1 = thisLevels.next();
 
     // @ts-ignore
-    return level1.value && level1.value.length && ["ul", "ol"].includes(level1.value[0].type);
+    return level1.value && level1.value.length && isListNode(level1.value[0].type);
 }
 
 export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
@@ -136,13 +136,13 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
     e.preventDefault();
 
     // @ts-ignore
-    const thisLevels = Editor.levels(editor, {match: n => ["ul", "ol"].includes(n.type), reverse: true});
+    const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
     const level1 = thisLevels.next();
     const level2 = thisLevels.next();
 
     if (e.shiftKey) {
         // @ts-ignore
-        const isLevel2List = level2.value && level2.value.length && ["ul", "ol"].includes(level2.value[0].type);
+        const isLevel2List = level2.value && level2.value.length && isListNode(level2.value[0].type);
 
         // if no ul two levels up then you can't unwrap
         if (!isLevel2List) {
@@ -166,20 +166,67 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
             return false;
         }
 
-        const list = {
-            type: (isNumbered ? "ol" : "ul"),
-            children: [],
-        };
-
+        // merge with adjacent lists if they exist
+        const thisPath = editor.selection.anchor.path;
+        const thisIndex = thisPath[thisPath.length - 2];
+        const parentNode = Editor.node(editor, thisPath.slice(0, thisPath.length - 2))[0];
+        const prevNode = thisIndex === 0 ? null : Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1]);
         // @ts-ignore
-        Transforms.wrapNodes(editor, list, {
-            match: n =>
-                
-                
+        const isPrevList = prevNode && isListNode(prevNode[0].type);
+        // @ts-ignore
+        const nextNode = (parentNode.children.length > thisIndex + 1) && Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1]);
+        // @ts-ignore
+        const isNextList = nextNode && isListNode(nextNode[0].type);
+
+        if (isPrevList) {
+            const thisNodePath = thisPath.slice(0, thisPath.length - 1);
+            // @ts-ignore
+            const toPath = [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1, prevNode[0].children.length];
+
+            Transforms.moveNodes(editor, {match: (node, path) => JSON.stringify(path) === JSON.stringify(thisNodePath), to: toPath});
+
+            if (isNextList) {
+                const nextNodePath = [...thisPath.slice(0, thisPath.length - 2), thisIndex];
+
+                // mergeNodes seems like a more direct way to do what I'm trying to but for now we'll go with the jank solution below
+                // Transforms.mergeNodes(editor, {
+                //     at: nextNodePath,
+                //     match: (node, path) => JSON.stringify(path) === JSON.stringify(nextNodePath),
+                // });
+
+                Transforms.moveNodes(editor, {
+                    at: nextNodePath,
+                    match: (node, path) => JSON.stringify(path.slice(0, path.length - 1)) === JSON.stringify(nextNodePath),
+                    to: [...toPath.slice(0, toPath.length - 1), toPath[toPath.length - 1] + 1],
+                });
+
+                Transforms.removeNodes(editor, {
+                    at: nextNodePath,
+                    match: (node, path) => JSON.stringify(path) === JSON.stringify(nextNodePath),
+                });
+            }
+        } else if (isNextList) {
+            const thisNodePath = thisPath.slice(0, thisPath.length - 1);
+            // @ts-ignore
+            const toPath = [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1, 0];
+
+            Transforms.moveNodes(editor, {match: (node, path) => JSON.stringify(path) === JSON.stringify(thisNodePath), to: toPath});
+        } else {
+            const list = {
+                type: (isNumbered ? "ol" : "ul"),
+                children: [],
+            };
+
+            // @ts-ignore
+            Transforms.wrapNodes(editor, list, {
                 // @ts-ignore
-                n.type === (isNumbered ? "numbered-li" : "li"),
-        });
+                match: n => n.type === (isNumbered ? "numbered-li" : "li"),
+            });
+        }
+
     }
 
     return true;
 }
+
+export const isListNode = (type: string) => ["ul", "ol"].includes(type);

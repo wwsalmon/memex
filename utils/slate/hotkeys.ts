@@ -4,6 +4,7 @@ import {ReactEditor} from "slate-react";
 import {HistoryEditor} from "slate-history";
 import {KeyboardEvent} from "react";
 import {insertLink} from "./link";
+import {isListNode} from "./list";
 
 const markHotkeys = {
     "mod+b": "bold",
@@ -36,11 +37,11 @@ const isMarkActive = (editor, format) => {
 
 const toggleBlock = (editor, format) => {
     const isActive = isBlockActive(editor, format);
-    const isList = ["ul", "ol"].includes(format);
+    const isList = isListNode(format);
 
     Transforms.unwrapNodes(editor, {
         match: n =>
-            ["ul", "ol"].includes(
+            isListNode(
                 // @ts-ignore
                 n.type
             ),
