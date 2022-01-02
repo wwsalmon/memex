@@ -8,6 +8,7 @@ import {withShortcuts} from "../utils/slate/shortcuts";
 import {onHotkey} from "../utils/slate/hotkeys";
 import {withCodeblocks} from "../utils/slate/codeblock";
 import {onEnter} from "../utils/slate/onEnter";
+import {onTabList} from "../utils/slate/list";
 
 export default function SlateEditor({value, setValue}: {
     value: SlateNode[],
@@ -28,6 +29,7 @@ export default function SlateEditor({value, setValue}: {
                     spellCheck
                     autoFocus
                     onKeyDown={event => {
+                        onTabList(event, editor);
                         onHotkey(event, editor);
                         onEnter(event, editor);
                     }}
