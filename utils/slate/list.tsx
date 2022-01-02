@@ -86,7 +86,7 @@ export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type:
             // @ts-ignore
             const toPath = [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1, prevNode[0].children.length];
 
-            Transforms.moveNodes(editor, {match: (node, path) => JSON.stringify(path) === JSON.stringify(thisNodePath), to: toPath});
+            Transforms.moveNodes(editor, {at: thisNodePath, to: toPath});
         } else {
             Transforms.mergeNodes(editor, {at: thisNodePath});
         }
@@ -212,7 +212,7 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
             // @ts-ignore
             const toPath = [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1, prevNode[0].children.length];
 
-            Transforms.moveNodes(editor, {match: (node, path) => JSON.stringify(path) === JSON.stringify(thisNodePath), to: toPath});
+            Transforms.moveNodes(editor, {at: thisNodePath, to: toPath});
 
             if (isNextList) {
                 const nextNodePath = [...thisPath.slice(0, thisPath.length - 2), thisIndex];
@@ -231,7 +231,6 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
 
                 Transforms.removeNodes(editor, {
                     at: nextNodePath,
-                    match: (node, path) => JSON.stringify(path) === JSON.stringify(nextNodePath),
                 });
             }
         } else if (isNextList) {
