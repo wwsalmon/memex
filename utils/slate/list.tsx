@@ -1,6 +1,6 @@
 import {ReactEditor} from "slate-react";
 import {HistoryEditor} from "slate-history";
-import {Editor, Node, Point, Transforms} from "slate";
+import {Editor, Node, Path, Point, Transforms} from "slate";
 import insertEmptyLine from "./insertEmptyLine";
 import {KeyboardEvent} from "react";
 
@@ -188,9 +188,12 @@ const indentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean
     return true;
 }
 
-const unIndentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean) => {
+const unIndentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean, at?: Path) => {
+    let levelsOptions = {match: n => isListNode(n.type), reverse: true};
+    if (at) levelsOptions["at"] = at;
+
     // @ts-ignore
-    const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
+    const thisLevels = Editor.levels(editor, levelsOptions);
     thisLevels.next();
     const level2 = thisLevels.next();
 
@@ -202,14 +205,17 @@ const unIndentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boole
         return false;
     }
 
-    Transforms.unwrapNodes(editor, {
+    let unwrapOptions = {
         // @ts-ignore
         match: n => n.type === (isNumbered ? "ol" : "ul"),
         split: true,
-    });
+    }
+    if (at) unwrapOptions["at"] = at;
+
+    Transforms.unwrapNodes(editor, unwrapOptions);
 
     // un-indent following list if it exists
-    const thisPath = editor.selection.anchor.path;
+    const thisPath = at ? at : editor.selection.anchor.path;
     const thisIndex = thisPath[thisPath.length - 2];
     const parentNode = Editor.node(editor, thisPath.slice(0, thisPath.length - 2));
     // @ts-ignore
@@ -233,49 +239,50 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
         // if element has children that are lists
         // @ts-ignore
         if (Editor.isBlock(editor, thisNode) && thisNode.children && thisNode.children.length && thisNode.children.some(d => isListNode(d.type))) {
-            console.log("has child list", thisPath);
+            // @ts-ignore
+            const isNumbered = thisNode.type === "numbered-li";
 
             for (let childIndex in thisNode.children) {
                 const thisChild = thisNode.children[childIndex];
 
                 // @ts-ignore
-                if (isListNode(thisChild.type) && ((+childIndex + 1) < thisNode.children.length)) {
-                    console.log("is child list", childIndex);
-
-                    const nextChild = thisNode.children[+childIndex + 1];
+                if (isListNode(thisChild.type)) {
                     // @ts-ignore
-                    if (isListNode(nextChild.type)) {
-                        Editor.withoutNormalizing(editor, () => {
-                            const nextPath = [...thisPath, +childIndex + 1];
-                            // @ts-ignore
-                            const toPath = [...thisPath, +childIndex, thisChild.children.length];
+                    if ((+childIndex + 1) < thisNode.children.length) {
+                        const nextChild = thisNode.children[+childIndex + 1];
+                        // @ts-ignore
+                        if (isListNode(nextChild.type)) {
+                            Editor.withoutNormalizing(editor, () => {
+                                const nextPath = [...thisPath, +childIndex + 1];
+                                // @ts-ignore
+                                const toPath = [...thisPath, +childIndex, thisChild.children.length];
 
-                            console.log("has nextchild list", thisPath, nextPath);
+                                Transforms.moveNodes(editor, {at: nextPath,
+                                    match: (
+                                        node,
+                                        path
+                                    ) => {
+                                        const isMatch = JSON.stringify(path.slice(0, path.length - 1)) === JSON.stringify(nextPath);
+                                        console.log(isMatch, path, nextPath);
+                                        return isMatch;
+                                    },
+                                    to: toPath
+                                });
 
-                            Transforms.moveNodes(editor, {at: nextPath,
-                                match: (
-                                    node,
-                                    path
-                                ) => {
-                                    const isMatch = JSON.stringify(path.slice(0, path.length - 1)) === JSON.stringify(nextPath);
-                                    console.log(isMatch, path, nextPath);
-                                    return isMatch;
-                                },
-                                to: toPath
+                                Transforms.removeNodes(editor, {at: nextPath});
+
+                                const entryToNormalize = Editor.node(editor, thisPath);
+
+                                editor.normalizeNode(entryToNormalize);
                             });
 
-                            console.log("moved nextchild's children successfully");
+                            return;
+                        }
+                    }
 
-                            Transforms.removeNodes(editor, {at: nextPath});
-
-                            console.log("removed nextchild successfully");
-
-                            const entryToNormalize = Editor.node(editor, thisPath);
-
-                            editor.normalizeNode(entryToNormalize);
-                        });
-
-                        console.log("returning for", thisPath);
+                    // first item in list can't be list
+                    if (+childIndex === 0) {
+                        unIndentListItem(editor, isNumbered, [...thisPath, +childIndex, 0]);
 
                         return;
                     }
