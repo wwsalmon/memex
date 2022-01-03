@@ -169,66 +169,16 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
 export const isListNode = (type: string) => ["ul", "ol"].includes(type);
 
 const indentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean) => {
-    const thisPath = editor.selection.anchor.path;
-    const thisIndex = thisPath[thisPath.length - 2];
+    const list = {
+        type: (isNumbered ? "ol" : "ul"),
+        children: [],
+    };
 
-    // if first item in list, can't nest
-    if (thisIndex === 0) return false;
-
-    // merge with adjacent lists if they exist
-    const parentNode = Editor.node(editor, thisPath.slice(0, thisPath.length - 2))[0];
-    const prevNode = Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1]);
     // @ts-ignore
-    const isPrevList = prevNode && isListNode(prevNode[0].type);
-    // @ts-ignore
-    const nextNode = (parentNode.children.length > thisIndex + 1) && Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1]);
-    // @ts-ignore
-    const isNextList = nextNode && isListNode(nextNode[0].type);
-
-    if (isPrevList) {
-        const thisNodePath = thisPath.slice(0, thisPath.length - 1);
+    Transforms.wrapNodes(editor, list, {
         // @ts-ignore
-        const toPath = [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1, prevNode[0].children.length];
-
-        Transforms.moveNodes(editor, {at: thisNodePath, to: toPath});
-
-        if (isNextList) {
-            const nextNodePath = [...thisPath.slice(0, thisPath.length - 2), thisIndex];
-
-            // mergeNodes seems like a more direct way to do what I'm trying to but for now we'll go with the jank solution below
-            // Transforms.mergeNodes(editor, {
-            //     at: nextNodePath,
-            //     match: (node, path) => JSON.stringify(path) === JSON.stringify(nextNodePath),
-            // });
-
-            Transforms.moveNodes(editor, {
-                at: nextNodePath,
-                match: (node, path) => JSON.stringify(path.slice(0, path.length - 1)) === JSON.stringify(nextNodePath),
-                to: [...toPath.slice(0, toPath.length - 1), toPath[toPath.length - 1] + 1],
-            });
-
-            Transforms.removeNodes(editor, {
-                at: nextNodePath,
-            });
-        }
-    } else if (isNextList) {
-        const thisNodePath = thisPath.slice(0, thisPath.length - 1);
-        // @ts-ignore
-        const toPath = [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1, 0];
-
-        Transforms.moveNodes(editor, {at: thisNodePath, to: toPath});
-    } else {
-        const list = {
-            type: (isNumbered ? "ol" : "ul"),
-            children: [],
-        };
-
-        // @ts-ignore
-        Transforms.wrapNodes(editor, list, {
-            // @ts-ignore
-            match: n => n.type === (isNumbered ? "numbered-li" : "li"),
-        });
-    }
+        match: n => n.type === (isNumbered ? "numbered-li" : "li"),
+    });
 
     return true;
 }
@@ -275,30 +225,56 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
     editor.normalizeNode = (entry) => {
         const [thisNode, thisPath] = entry;
 
+        // if element has children that are lists
         // @ts-ignore
-        if (isListNode(thisNode.type)) {
-            // delete empty lists
-            // @ts-ignore
-            if (thisNode.children.length === 0) {
-                Transforms.removeNodes(editor, {at: thisPath});
-                return;
-            }
+        if (Editor.isBlock(editor, thisNode) && thisNode.children && thisNode.children.length && thisNode.children.some(d => isListNode(d.type))) {
+            console.log("has child list", thisPath);
 
-            const parentNode = Editor.node(editor, thisPath.slice(0, thisPath.length - 1));
-            const thisIndex = thisPath[thisPath.length - 1];
-            // @ts-ignore
-            const nextNode = (parentNode[0].children.length > thisIndex + 1) && Editor.node(editor, [...thisPath.slice(0, thisPath.length - 1), thisIndex + 1]);
+            for (let childIndex in thisNode.children) {
+                const thisChild = thisNode.children[childIndex];
 
-            // @ts-ignore
-            if (nextNode && nextNode.length && isListNode(nextNode[0].type)) {
-                console.log("list normalization firing", thisNode, thisPath, nextNode);
+                // @ts-ignore
+                if (isListNode(thisChild.type) && ((+childIndex + 1) < thisNode.children.length)) {
+                    console.log("is child list", childIndex);
 
-                Transforms.moveNodes(editor, {
-                    at: nextNode[1],
-                    match: (node, path) => JSON.stringify(path.slice(0, path.length - 1)) === JSON.stringify(nextNode[1]),
+                    const nextChild = thisNode.children[+childIndex + 1];
                     // @ts-ignore
-                    to: [...thisPath, thisNode.children.length],
-                });
+                    if (isListNode(nextChild.type)) {
+                        Editor.withoutNormalizing(editor, () => {
+                            const nextPath = [...thisPath, +childIndex + 1];
+                            // @ts-ignore
+                            const toPath = [...thisPath, +childIndex, thisChild.children.length];
+
+                            console.log("has nextchild list", thisPath, nextPath);
+
+                            Transforms.moveNodes(editor, {at: nextPath,
+                                match: (
+                                    node,
+                                    path
+                                ) => {
+                                    const isMatch = JSON.stringify(path.slice(0, path.length - 1)) === JSON.stringify(nextPath);
+                                    console.log(isMatch, path, nextPath);
+                                    return isMatch;
+                                },
+                                to: toPath
+                            });
+
+                            console.log("moved nextchild's children successfully");
+
+                            Transforms.removeNodes(editor, {at: nextPath});
+
+                            console.log("removed nextchild successfully");
+
+                            const entryToNormalize = Editor.node(editor, thisPath);
+
+                            editor.normalizeNode(entryToNormalize);
+                        });
+
+                        console.log("returning for", thisPath);
+
+                        return;
+                    }
+                }
             }
         }
 
