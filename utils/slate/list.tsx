@@ -32,7 +32,7 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
             }
         }
 
-        wrapOrMergeListItem(editor, isNumbered);
+        indentListItem(editor, isNumbered);
     }
 }
 
@@ -163,48 +163,25 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
 
     e.preventDefault();
 
-    // @ts-ignore
-    const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
-    const level1 = thisLevels.next();
-    const level2 = thisLevels.next();
-
     if (e.shiftKey) {
-        // @ts-ignore
-        const isLevel2List = level2.value && level2.value.length && isListNode(level2.value[0].type);
-
-        // if no ul two levels up then you can't unwrap
-        if (!isLevel2List) {
-            return false;
-        }
-
-        Transforms.unwrapNodes(editor, {
-            // @ts-ignore
-            match: n => n.type === (isNumbered ? "ol" : "ul"),
-            split: true,
-        })
+        return unIndentListItem(editor, isNumbered);
     } else {
-        // @ts-ignore
-        const level1Children = level1.value && level1.value.length && level1.value[0].children;
-
-        // if parent has only one list item child then can't wrap
-        if (level1Children.filter(d => ["li", "numbered-li"].includes(d.type)).length === 1) {
-            return false;
-        }
-
-        wrapOrMergeListItem(editor, isNumbered);
+        return indentListItem(editor, isNumbered);
     }
-
-    return true;
 }
 
 export const isListNode = (type: string) => ["ul", "ol"].includes(type);
 
-const wrapOrMergeListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean) => {
-    // merge with adjacent lists if they exist
+const indentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean) => {
     const thisPath = editor.selection.anchor.path;
     const thisIndex = thisPath[thisPath.length - 2];
+
+    // if first item in list, can't nest
+    if (thisIndex === 0) return false;
+
+    // merge with adjacent lists if they exist
     const parentNode = Editor.node(editor, thisPath.slice(0, thisPath.length - 2))[0];
-    const prevNode = thisIndex === 0 ? null : Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1]);
+    const prevNode = Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1]);
     // @ts-ignore
     const isPrevList = prevNode && isListNode(prevNode[0].type);
     // @ts-ignore
@@ -256,4 +233,29 @@ const wrapOrMergeListItem = (editor: ReactEditor & HistoryEditor, isNumbered: bo
             match: n => n.type === (isNumbered ? "numbered-li" : "li"),
         });
     }
+
+    return true;
+}
+
+const unIndentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean) => {
+    // @ts-ignore
+    const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
+    thisLevels.next();
+    const level2 = thisLevels.next();
+
+    // @ts-ignore
+    const isLevel2List = level2.value && level2.value.length && isListNode(level2.value[0].type);
+
+    // if no ul two levels up then you can't unwrap
+    if (!isLevel2List) {
+        return false;
+    }
+
+    Transforms.unwrapNodes(editor, {
+        // @ts-ignore
+        match: n => n.type === (isNumbered ? "ol" : "ul"),
+        split: true,
+    });
+
+    return true;
 }
