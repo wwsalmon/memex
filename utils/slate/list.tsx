@@ -1,6 +1,6 @@
 import {ReactEditor} from "slate-react";
 import {HistoryEditor} from "slate-history";
-import {Editor, Node, Transforms} from "slate";
+import {Editor, Node, Point, Transforms} from "slate";
 import insertEmptyLine from "./insertEmptyLine";
 import {KeyboardEvent} from "react";
 
@@ -133,7 +133,12 @@ export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
 
         insertEmptyLine(editor, isNumbered ? "numbered-li" : "li");
     } else {
-        Transforms.splitNodes(editor);
+        // if at start of block
+        if (Point.equals(editor.selection.anchor, Editor.start(editor, block[1]))) {
+            insertEmptyLine(editor, isNumbered ? "numbered-li" : "li", block[1]);
+        } else {
+            Transforms.splitNodes(editor);
+        }
     }
 
     return true;
