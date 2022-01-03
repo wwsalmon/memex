@@ -216,7 +216,7 @@ const indentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean
         // @ts-ignore
         const toPath = [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1, 0];
 
-        Transforms.moveNodes(editor, {match: (node, path) => JSON.stringify(path) === JSON.stringify(thisNodePath), to: toPath});
+        Transforms.moveNodes(editor, {at: thisNodePath, to: toPath});
     } else {
         const list = {
             type: (isNumbered ? "ol" : "ul"),
@@ -267,4 +267,43 @@ const unIndentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boole
     }
 
     return true;
+}
+
+export const withLists = (editor: ReactEditor & HistoryEditor) => {
+    const {normalizeNode} = editor;
+
+    editor.normalizeNode = (entry) => {
+        const [thisNode, thisPath] = entry;
+
+        // @ts-ignore
+        if (isListNode(thisNode.type)) {
+            // delete empty lists
+            // @ts-ignore
+            if (thisNode.children.length === 0) {
+                Transforms.removeNodes(editor, {at: thisPath});
+                return;
+            }
+
+            const parentNode = Editor.node(editor, thisPath.slice(0, thisPath.length - 1));
+            const thisIndex = thisPath[thisPath.length - 1];
+            // @ts-ignore
+            const nextNode = (parentNode[0].children.length > thisIndex + 1) && Editor.node(editor, [...thisPath.slice(0, thisPath.length - 1), thisIndex + 1]);
+
+            // @ts-ignore
+            if (nextNode && nextNode.length && isListNode(nextNode[0].type)) {
+                console.log("list normalization firing", thisNode, thisPath, nextNode);
+
+                Transforms.moveNodes(editor, {
+                    at: nextNode[1],
+                    match: (node, path) => JSON.stringify(path.slice(0, path.length - 1)) === JSON.stringify(nextNode[1]),
+                    // @ts-ignore
+                    to: [...thisPath, thisNode.children.length],
+                });
+            }
+        }
+
+        normalizeNode(entry);
+    }
+
+    return editor;
 }
