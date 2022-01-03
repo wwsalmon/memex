@@ -169,6 +169,11 @@ export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor 
 export const isListNode = (type: string) => ["ul", "ol"].includes(type);
 
 const indentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean) => {
+    const thisPath = editor.selection.anchor.path;
+    const thisIndex = thisPath[thisPath.length - 2];
+
+    if (thisIndex === 0) return true;
+
     const list = {
         type: (isNumbered ? "ol" : "ul"),
         children: [],
