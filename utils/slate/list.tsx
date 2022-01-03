@@ -49,11 +49,7 @@ export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type:
     if (thisIndex === 0) {
         // @ts-ignore
         if (isList) {
-            Transforms.unwrapNodes(editor, {
-                // @ts-ignore
-                match: n => n.type === (isNumbered ? "ol" : "ul"),
-                split: true,
-            });
+            unIndentListItem(editor, isNumbered);
         }
 
         // @ts-ignore
@@ -256,6 +252,19 @@ const unIndentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boole
         match: n => n.type === (isNumbered ? "ol" : "ul"),
         split: true,
     });
+
+    // un-indent following list if it exists
+    const thisPath = editor.selection.anchor.path;
+    const thisIndex = thisPath[thisPath.length - 2];
+    const parentNode = Editor.node(editor, thisPath.slice(0, thisPath.length - 2));
+    // @ts-ignore
+    const nextNode = (parentNode[0].children.length > thisIndex + 1) && Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1]);
+    // @ts-ignore
+    const isNextListStartsWithList = nextNode && isListNode(nextNode[0].type) && nextNode[0].children.length && isListNode(nextNode[0].children[0].type);
+
+    if (isNextListStartsWithList) {
+        Transforms.moveNodes(editor, {at: [...nextNode[1], 0], to: [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1]});
+    }
 
     return true;
 }
