@@ -1,4 +1,4 @@
-import {Editor, Element as SlateElement, Transforms} from "slate";
+import {Editor, Element, Element as SlateElement, Transforms} from "slate";
 import isHotkey from "is-hotkey";
 import {ReactEditor} from "slate-react";
 import {HistoryEditor} from "slate-history";
@@ -40,15 +40,10 @@ const toggleBlock = (editor, format) => {
     const isList = isListNode(format);
 
     Transforms.unwrapNodes(editor, {
-        match: n =>
-            isListNode(
-                // @ts-ignore
-                n.type
-            ),
+        match: n => Element.isElement(n) && isListNode(n.type),
         split: true,
     });
     const newProperties: Partial<SlateElement> = {
-        // @ts-ignore
         type: isActive ? "" : isList ? "li" : format,
     };
     Transforms.setNodes(editor, newProperties);
@@ -62,9 +57,7 @@ const toggleBlock = (editor, format) => {
 export const isBlockActive = (editor, format) => {
     // @ts-ignore
     const [match] = Editor.nodes(editor, {
-        match: n =>
-            // @ts-ignore
-            n.type === format,
+        match: n => Element.isElement(n) && n.type === format,
     });
 
     return !!match;

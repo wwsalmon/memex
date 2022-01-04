@@ -1,6 +1,6 @@
-import {ReactEditor} from "slate-react";
+import {ReactEditor, Slate} from "slate-react";
 import {HistoryEditor} from "slate-history";
-import {Editor, Node, Path, Point, Transforms} from "slate";
+import {Editor, Element, Node, Path, Point, Text, Transforms} from "slate";
 import insertEmptyLine from "./insertEmptyLine";
 import {KeyboardEvent} from "react";
 
@@ -11,12 +11,10 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
     if (isList) {
         // get current block
         const block = Editor.above(editor, {
-            // @ts-ignore
             match: n => isListNode(Editor.isBlock(editor, n) && n.type),
         });
 
-        if (block) {
-            // @ts-ignore
+        if (block && Element.isElement(block[0])) {
             const currType = block[0].type;
 
             // if already in the correct block, don't double-nest
@@ -24,7 +22,6 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
 
             // if in the opposite type of list, change back to correct list type
             if (currType === (isNumbered ? "ul" : "ol")) {
-                // @ts-ignore
                 Transforms.setNodes(editor, {type: isNumbered ? "li" : "numbered-li"});
                 return;
             }
@@ -45,23 +42,17 @@ export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type:
 
     // if first item in list, unwrap and handle normally; else merge with item above
     if (thisIndex === 0) {
-        // @ts-ignore
-        const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
-        const level1 = thisLevels.next();
+        const thisLevels = Editor.levels(editor, {match: n => Element.isElement(n) && isListNode(n.type), reverse: true});
+        thisLevels.next();
         const level2 = thisLevels.next();
-        // @ts-ignore
-        const level1Islist = level1.value && level1.value.length && isListNode(level1.value[0].type);
-        // @ts-ignore
-        const level2IsList = level2.value && level2.value.length && isListNode(level2.value[0].type);
+        const level2IsList = level2.value && level2.value.length && Element.isElement(level2.value[0]) && isListNode(level2.value[0].type);
 
         // attempt to un-indent the item
-        // @ts-ignore
         unIndentListItem(editor);
 
         // if not nested item, unwrap the item
         if (!level2IsList) {
-            // @ts-ignore
-            Transforms.unwrapNodes(editor, {match: n => isListNode(n.type), split: true});
+            Transforms.unwrapNodes(editor, {match: n => Element.isElement(n) && isListNode(n.type), split: true});
         }
 
         return level2IsList;
@@ -76,12 +67,10 @@ export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type:
         }
 
         const prevNode = thisIndex === 0 ? null : Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1]);
-        // @ts-ignore
-        const isPrevList = prevNode && isListNode(prevNode[0].type);
+        const isPrevList = prevNode && Element.isElement(prevNode[0]) && isListNode(prevNode[0].type);
 
         // if prevNode is list, merge with it; otherwise just return false
-        if (isPrevList) {
-            // @ts-ignore
+        if (isPrevList && Element.isElement(prevNode[0])) {
             const toPath = [...thisPath.slice(0, thisPath.length - 2), thisIndex - 1, prevNode[0].children.length];
 
             Transforms.moveNodes(editor, {at: thisNodePath, to: toPath});
@@ -98,9 +87,8 @@ export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
         match: n => Editor.isBlock(editor, n),
     });
 
-    if (!block) return false;
+    if (!(block && Element.isElement(block[0]))) return false;
 
-    // @ts-ignore
     const type = block[0].type;
 
     const isList = type === "li" || type === "numbered-li";
@@ -110,25 +98,20 @@ export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
 
     if (!isList) return false;
 
-    // @ts-ignore
-    if (selectedLeaf.text.length === editor.selection.anchor.offset) {
+    if (Text.isText(selectedLeaf) && selectedLeaf.text.length === editor.selection.anchor.offset) {
         // if empty li
-        // @ts-ignore
-        if (block[0].children && block[0].children.length && block[0].children[0].text === "") {
+        
+        if (block[0].children && block[0].children.length && Text.isText(block[0].children[0]) && block[0].children[0].text === "") {
             Transforms.unwrapNodes(editor, {
-                // @ts-ignore
-                match: n => n.type === (isNumbered ? "ol" : "ul"),
+                match: n => Element.isElement(n) && n.type === (isNumbered ? "ol" : "ul"),
                 split: true,
             });
 
-            // @ts-ignore
-            const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
+            const thisLevels = Editor.levels(editor, {match: n => Element.isElement(n) && isListNode(n.type), reverse: true});
             const level1 = thisLevels.next();
 
             // if parent after unwrapping is not list, turn the node into a p, otherwise keep it a list item
-            // @ts-ignore
-            if (!(level1.value && level1.value.length && isListNode(level1.value[0].type))) {
-                // @ts-ignore
+            if (!(level1.value && level1.value.length && Element.isElement(level1.value[0]) && isListNode(level1.value[0].type))) {
                 Transforms.setNodes(editor, {type: "p"});
             }
 
@@ -181,10 +164,8 @@ const indentListItem = (editor: ReactEditor & HistoryEditor) => {
         children: [],
     };
 
-    // @ts-ignore
     Transforms.wrapNodes(editor, list, {
-        // @ts-ignore
-        match: n => n.type === (isNumbered ? "numbered-li" : "li"),
+        match: n => Element.isElement(n) && n.type === (isNumbered ? "numbered-li" : "li"),
     });
 
     return true;
@@ -198,13 +179,11 @@ const unIndentListItem = (editor: ReactEditor & HistoryEditor, at?: Path) => {
     let levelsOptions = {match: n => isListNode(n.type), reverse: true};
     if (at) levelsOptions["at"] = at;
 
-    // @ts-ignore
     const thisLevels = Editor.levels(editor, levelsOptions);
     thisLevels.next();
     const level2 = thisLevels.next();
 
-    // @ts-ignore
-    const isLevel2List = level2.value && level2.value.length && isListNode(level2.value[0].type);
+    const isLevel2List = level2.value && level2.value.length && Element.isElement(level2.value[0]) && isListNode(level2.value[0].type);
 
     // if no ul two levels up then you can't unwrap
     if (!isLevel2List) {
@@ -212,7 +191,6 @@ const unIndentListItem = (editor: ReactEditor & HistoryEditor, at?: Path) => {
     }
 
     let unwrapOptions = {
-        // @ts-ignore
         match: n => n.type === (isNumbered ? "ol" : "ul"),
         split: true,
     }
@@ -224,10 +202,8 @@ const unIndentListItem = (editor: ReactEditor & HistoryEditor, at?: Path) => {
     const thisPath = at ? at : editor.selection.anchor.path;
     const thisIndex = thisPath[thisPath.length - 2];
     const parentNode = Editor.node(editor, thisPath.slice(0, thisPath.length - 2));
-    // @ts-ignore
-    const nextNode = (parentNode[0].children.length > thisIndex + 1) && Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1]);
-    // @ts-ignore
-    const isNextListStartsWithList = nextNode && isListNode(nextNode[0].type) && nextNode[0].children.length && isListNode(nextNode[0].children[0].type);
+    const nextNode = Element.isElement(parentNode[0]) && (parentNode[0].children.length > thisIndex + 1) && Editor.node(editor, [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1]);
+    const isNextListStartsWithList = nextNode && Element.isElement(nextNode[0]) && isListNode(nextNode[0].type) && nextNode[0].children.length && Element.isElement(nextNode[0].children[0]) && isListNode(nextNode[0].children[0].type);
 
     if (isNextListStartsWithList) {
         Transforms.moveNodes(editor, {at: [...nextNode[1], 0], to: [...thisPath.slice(0, thisPath.length - 2), thisIndex + 1]});
@@ -245,8 +221,7 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
         // console.log("normalizing", thisPath, thisNode);
 
         // if element has children that are lists
-        // @ts-ignore
-        if ("children" in thisNode && thisNode.children.length && thisNode.children.some(d => isListNode(d.type))) {
+        if ("children" in thisNode && thisNode.children.length && thisNode.children.some(d => Element.isElement(d) && isListNode(d.type))) {
             // console.log("has children lists");
 
             for (let childIndex in thisNode.children) {
@@ -254,22 +229,17 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
 
                 // console.log("is child list", childIndex);
 
-                // @ts-ignore
-                if (isListNode(thisChild.type)) {
-                    // @ts-ignore
+                if (Element.isElement(thisChild) && isListNode(thisChild.type)) {
                     if ((+childIndex + 1) < thisNode.children.length) {
                         const nextChild = thisNode.children[+childIndex + 1];
-                        // @ts-ignore
                         const isThisNumbered = thisChild.type === "ol";
-                        // @ts-ignore
-                        const isNextNumbered = nextChild.type === "ol";
-                        // @ts-ignore
-                        if (isListNode(nextChild.type) && (isThisNumbered === isNextNumbered)) {
+                        const isNextNumbered = Element.isElement(nextChild) && nextChild.type === "ol";
+                        
+                        if (Element.isElement(nextChild) && isListNode(nextChild.type) && (isThisNumbered === isNextNumbered)) {
                             // console.log("merging down");
 
                             Editor.withoutNormalizing(editor, () => {
                                 const nextPath = [...thisPath, +childIndex + 1];
-                                // @ts-ignore
                                 const toPath = [...thisPath, +childIndex, thisChild.children.length];
 
                                 Transforms.moveNodes(editor, {at: nextPath,
@@ -316,9 +286,8 @@ const getListItemType = (editor: ReactEditor & HistoryEditor) => {
         match: n => Editor.isBlock(editor, n),
     });
 
-    if (!block) return false;
+    if (!(block && Element.isElement(block[0]))) return false;
 
-    // @ts-ignore
     const type = block[0].type;
 
     const isList = type === "li" || type === "numbered-li";

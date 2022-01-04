@@ -1,4 +1,4 @@
-import {Editor, Element as SlateElement, Point, Range, Transforms} from "slate";
+import {Editor, Element, Element as SlateElement, Point, Range, Transforms} from "slate";
 import {SlateNode} from "../types";
 import {onDeleteBackwardsList, onShortcutSpaceList} from "./list";
 
@@ -49,7 +49,6 @@ export const withShortcuts = editor => {
                 Transforms.select(editor, range);
                 Transforms.delete(editor);
 
-                // @ts-ignore
                 Transforms.setNodes(editor, {type}, {
                     match: n => Editor.isBlock(editor, n),
                 });
@@ -76,17 +75,14 @@ export const withShortcuts = editor => {
                 const start = Editor.start(editor, path);
 
                 if (
-                    // @ts-ignore
+                    Element.isElement(block) &&
                     block.type !== "p" &&
                     Point.equals(selection.anchor, start)
                 ) {
-                    // @ts-ignore
+                    
                     if (onDeleteBackwardsList(editor, block.type)) return;
 
-                    const newProperties: Partial<SlateElement> = {
-                        // @ts-ignore
-                        type: "p",
-                    };
+                    const newProperties: Partial<SlateElement> = {type: "p"};
                     Transforms.setNodes(editor, newProperties);
 
                     return;

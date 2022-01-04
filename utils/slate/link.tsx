@@ -1,5 +1,5 @@
 import isUrl from "is-url";
-import {Editor, Element as SlateElement, Range, Transforms,} from "slate";
+import {Editor, Element, Element as SlateElement, Range, Transforms,} from "slate";
 import {SlateNode} from "../types";
 import {useEffect, useRef, useState} from "react";
 import {ReactEditor, useSlate} from "slate-react";
@@ -46,18 +46,14 @@ export const insertLink = (editor, url) => {
 const getActiveLink = editor => {
     // @ts-ignore
     const [link] = Editor.nodes(editor, {
-        match: n =>
-            // @ts-ignore
-            n.type === "a",
+        match: n => Element.isElement(n) && n.type === "a",
     });
     return link;
 };
 
 const unwrapLink = editor => {
     Transforms.unwrapNodes(editor, {
-        match: n =>
-            // @ts-ignore
-            n.type === "a",
+        match: n => Element.isElement(n) && n.type === "a",
     });
 };
 
