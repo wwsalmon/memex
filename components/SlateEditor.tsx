@@ -56,8 +56,6 @@ const Element = ({attributes, children, element}) => {
             return <h4 {...attributes}>{children}</h4>;
         case "li":
             return <li {...attributes}>{children}</li>;
-        case "numbered-li":
-            return <li {...attributes}>{children}</li>;
         case "ol":
             return <ol {...attributes}>{children}</ol>;
         case "a":

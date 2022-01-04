@@ -23,7 +23,7 @@ const mdShortcuts = {
     "####": "h4",
     "#####": "heading-five",
     "######": "heading-six",
-    "1.": "numbered-li",
+    "1.": "li", // but this is special case
     "```": "codeblock",
 };
 
@@ -44,6 +44,7 @@ export const withShortcuts = editor => {
             const range = {anchor, focus: start};
             const beforeText = Editor.string(editor, range);
             const type = mdShortcuts[beforeText];
+            const isNumbered = beforeText === "1.";
 
             if (type) {
                 Transforms.select(editor, range);
@@ -53,7 +54,7 @@ export const withShortcuts = editor => {
                     match: n => Editor.isBlock(editor, n),
                 });
 
-                onShortcutSpaceList(editor, type);
+                onShortcutSpaceList(editor, type, isNumbered);
 
                 return;
             }
