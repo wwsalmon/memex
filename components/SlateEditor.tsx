@@ -9,12 +9,13 @@ import {onHotkey} from "../utils/slate/hotkeys";
 import {withCodeblocks} from "../utils/slate/codeblock";
 import {onEnter} from "../utils/slate/onEnter";
 import {onTabList, withLists} from "../utils/slate/list";
+import withDeserializeMD from "../utils/slate/withDeserializeMD";
 
 export default function SlateEditor({value, setValue}: {
     value: SlateNode[],
     setValue: Dispatch<SetStateAction<SlateNode[]>>
 }) {
-    const [editor] = useState<ReactEditor & HistoryEditor>(withLists(withCodeblocks(withLinks(withShortcuts(withHistory(withReact(createEditor() as ReactEditor)))))));
+    const [editor] = useState<ReactEditor & HistoryEditor>(withLists(withCodeblocks(withLinks(withShortcuts(withDeserializeMD(withHistory(withReact(createEditor() as ReactEditor))))))));
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 

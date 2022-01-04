@@ -200,6 +200,39 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
     editor.normalizeNode = (entry) => {
         const [thisNode, thisPath] = entry;
 
+        // unwrap block
+        if (Element.isElement(thisNode) && thisNode.type === "li") {
+            // console.log("considering list item", thisPath);
+
+            for (let childIndex in thisNode.children) {
+                if (thisNode.children[childIndex]) {
+                    const thisChild = thisNode.children[childIndex];
+
+                    // if list under list item, unwrap list
+                    if (Element.isElement(thisChild) && isListNode(thisChild.type)) {
+                        Transforms.unwrapNodes(editor, {
+                            at: [...thisPath, +childIndex],
+                            match: (node, path) => Element.isElement(node) && node.type === "li" && JSON.stringify(path) === JSON.stringify(thisPath),
+                            split: true
+                        });
+                        return;
+                    }
+
+                    // if non-inline child that is not a sublist, then unwrap
+                    if (Element.isElement(thisChild) && !editor.isInline(thisChild) && !isListNode(thisChild.type)) {
+                        // console.log("unwrapping child", thisChild);
+
+                        Transforms.unwrapNodes(editor, {at: [...thisPath, +childIndex, 0], match: (node, path) => {
+                                const isMatch = Element.isElement(node) && node.type === thisChild.type && JSON.stringify(path) === JSON.stringify([...thisPath, +childIndex]);
+                                console.log(isMatch, node, path);
+                                return isMatch;
+                            }});
+                        return;
+                    }
+                }
+            }
+        }
+
         // console.log("normalizing", thisPath, thisNode);
 
         // if element has children that are lists
@@ -249,6 +282,8 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
 
                     // first item in list can't be list
                     if (+childIndex === 0) {
+                        // console.log("unindenting");
+
                         unIndentListItem(editor, [...thisPath, +childIndex, 0]);
 
                         return;

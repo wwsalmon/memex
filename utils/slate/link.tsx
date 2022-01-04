@@ -1,5 +1,5 @@
 import isUrl from "is-url";
-import {Editor, Element, Element as SlateElement, Range, Transforms,} from "slate";
+import {Editor, Element, Range, Transforms,} from "slate";
 import {SlateNode} from "../types";
 import {useEffect, useRef, useState} from "react";
 import {ReactEditor, useSlate} from "slate-react";
@@ -57,7 +57,7 @@ const unwrapLink = editor => {
     });
 };
 
-const wrapLink = (editor, url) => {
+const wrapLink = (editor, href) => {
     const activeLink = getActiveLink(editor);
 
     if (!!activeLink) {
@@ -66,10 +66,10 @@ const wrapLink = (editor, url) => {
 
     const {selection} = editor;
     const isCollapsed = selection && Range.isCollapsed(selection);
-    const link: SlateNode & { url: string } = {
+    const link: SlateNode & { href: string } = {
         type: "a",
-        url,
-        children: isCollapsed ? [{text: url}] : [],
+        href,
+        children: isCollapsed ? [{text: href}] : [],
     };
 
     if (isCollapsed) {
@@ -80,7 +80,7 @@ const wrapLink = (editor, url) => {
     }
 };
 
-const updateLink = (editor, url) => {
+const updateLink = (editor, href) => {
     const {selection} = editor;
 
     const activeLink = getActiveLink(editor);
@@ -91,7 +91,7 @@ const updateLink = (editor, url) => {
 
     Transforms.select(editor, path);
     unwrapLink(editor);
-    wrapLink(editor, normalizeUrl(url));
+    wrapLink(editor, normalizeUrl(href));
     Transforms.setSelection(editor, selection);
 }
 
@@ -123,8 +123,8 @@ export const SlateLinkBalloon = () => {
             return;
         }
 
-        setLink(activeLink[0].url);
-        setNewLink(activeLink[0].url);
+        setLink(activeLink[0].href);
+        setNewLink(activeLink[0].href);
         const domSelection = window.getSelection();
         const domRange = domSelection.getRangeAt(0);
         const rect = domRange.getBoundingClientRect();
@@ -146,9 +146,9 @@ export const SlateLinkBalloon = () => {
                     className="p-1"
                     onMouseDown={e => {
                         e.preventDefault();
-                        const url = window.prompt("Edit the URL of the link:", link);
-                        if (!url) return;
-                        updateLink(editor, url);
+                        const href = window.prompt("Edit the URL of the link:", link);
+                        if (!href) return;
+                        updateLink(editor, href);
                     }}
                 ><FiEdit2/></Button>
                 <Button
