@@ -32,7 +32,7 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
             }
         }
 
-        indentListItem(editor, isNumbered);
+        indentListItem(editor);
     }
 }
 
@@ -58,7 +58,7 @@ export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type:
 
         // attempt to un-indent the item
         // @ts-ignore
-        unIndentListItem(editor, isNumbered);
+        unIndentListItem(editor);
 
         // if not nested item, unwrap the item
         if (!level2IsList) {
@@ -153,32 +153,26 @@ export const onEnterList = (editor: ReactEditor & HistoryEditor) => {
 export const onTabList = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor & HistoryEditor) => {
     if (e.key !== "Tab") return false;
 
-    const block = Editor.above(editor, {
-        match: n => Editor.isBlock(editor, n),
-    });
-
-    if (!block) return false;
-
-    // @ts-ignore
-    const type = block[0].type;
-
-    const isList = type === "li" || type === "numbered-li";
-    const isNumbered = type === "numbered-li";
-
-    if (!isList) return false;
+    const listType = getListItemType(editor);
+    if (listType === false) return false;
+    const isNumbered = listType.isNumbered;
 
     e.preventDefault();
 
     if (e.shiftKey) {
-        return unIndentListItem(editor, isNumbered);
+        return unIndentListItem(editor);
     } else {
-        return indentListItem(editor, isNumbered);
+        return indentListItem(editor);
     }
 }
 
 export const isListNode = (type: string) => ["ul", "ol"].includes(type);
 
-const indentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean) => {
+const indentListItem = (editor: ReactEditor & HistoryEditor) => {
+    const listType = getListItemType(editor);
+    if (listType === false) return false;
+    const isNumbered = listType.isNumbered;
+
     const thisPath = editor.selection.anchor.path;
     const thisIndex = thisPath[thisPath.length - 2];
 
@@ -198,7 +192,11 @@ const indentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean
     return true;
 }
 
-const unIndentListItem = (editor: ReactEditor & HistoryEditor, isNumbered: boolean, at?: Path) => {
+const unIndentListItem = (editor: ReactEditor & HistoryEditor, at?: Path) => {
+    const listType = getListItemType(editor);
+    if (listType === false) return false;
+    const isNumbered = listType.isNumbered;
+
     let levelsOptions = {match: n => isListNode(n.type), reverse: true};
     if (at) levelsOptions["at"] = at;
 
@@ -246,14 +244,17 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
     editor.normalizeNode = (entry) => {
         const [thisNode, thisPath] = entry;
 
+        // console.log("normalizing", thisPath, thisNode);
+
         // if element has children that are lists
         // @ts-ignore
-        if (Editor.isBlock(editor, thisNode) && thisNode.children && thisNode.children.length && thisNode.children.some(d => isListNode(d.type))) {
-            // @ts-ignore
-            const isNumbered = thisNode.type === "numbered-li";
+        if ("children" in thisNode && thisNode.children.length && thisNode.children.some(d => isListNode(d.type))) {
+            // console.log("has children lists");
 
             for (let childIndex in thisNode.children) {
                 const thisChild = thisNode.children[childIndex];
+
+                // console.log("is child list", childIndex);
 
                 // @ts-ignore
                 if (isListNode(thisChild.type)) {
@@ -262,6 +263,8 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
                         const nextChild = thisNode.children[+childIndex + 1];
                         // @ts-ignore
                         if (isListNode(nextChild.type)) {
+                            // console.log("merging down");
+
                             Editor.withoutNormalizing(editor, () => {
                                 const nextPath = [...thisPath, +childIndex + 1];
                                 // @ts-ignore
@@ -292,7 +295,7 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
 
                     // first item in list can't be list
                     if (+childIndex === 0) {
-                        unIndentListItem(editor, isNumbered, [...thisPath, +childIndex, 0]);
+                        unIndentListItem(editor, [...thisPath, +childIndex, 0]);
 
                         return;
                     }
@@ -304,4 +307,22 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
     }
 
     return editor;
+}
+
+const getListItemType = (editor: ReactEditor & HistoryEditor) => {
+    const block = Editor.above(editor, {
+        match: n => Editor.isBlock(editor, n),
+    });
+
+    if (!block) return false;
+
+    // @ts-ignore
+    const type = block[0].type;
+
+    const isList = type === "li" || type === "numbered-li";
+    const isNumbered = type === "numbered-li";
+
+    if (!isList) return false;
+
+    return {isNumbered};
 }
