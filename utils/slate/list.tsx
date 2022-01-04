@@ -20,15 +20,13 @@ export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: s
             const currType = block[0].type;
 
             // if already in the correct block, don't double-nest
-            if (currType === (isNumbered ? "ol" : "ul")) return false;
+            if (currType === (isNumbered ? "ol" : "ul")) return;
 
-            // if in the opposite type of list, unwrap first
+            // if in the opposite type of list, change back to correct list type
             if (currType === (isNumbered ? "ul" : "ol")) {
-                Transforms.unwrapNodes(editor, {
-                    // @ts-ignore
-                    match: n => n.type === (isNumbered ? "ul" : "ol"),
-                    split: true,
-                });
+                // @ts-ignore
+                Transforms.setNodes(editor, {type: isNumbered ? "li" : "numbered-li"});
+                return;
             }
         }
 
