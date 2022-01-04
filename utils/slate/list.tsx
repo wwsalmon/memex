@@ -260,7 +260,11 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
                     if ((+childIndex + 1) < thisNode.children.length) {
                         const nextChild = thisNode.children[+childIndex + 1];
                         // @ts-ignore
-                        if (isListNode(nextChild.type)) {
+                        const isThisNumbered = thisChild.type === "ol";
+                        // @ts-ignore
+                        const isNextNumbered = nextChild.type === "ol";
+                        // @ts-ignore
+                        if (isListNode(nextChild.type) && (isThisNumbered === isNextNumbered)) {
                             // console.log("merging down");
 
                             Editor.withoutNormalizing(editor, () => {
