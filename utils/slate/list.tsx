@@ -48,15 +48,25 @@ export const onDeleteBackwardsList = (editor: ReactEditor & HistoryEditor, type:
     // if first item in list, unwrap and handle normally; else merge with item above
     if (thisIndex === 0) {
         // @ts-ignore
-        if (isList) {
-            unIndentListItem(editor, isNumbered);
-        }
-
-        // @ts-ignore
         const thisLevels = Editor.levels(editor, {match: n => isListNode(n.type), reverse: true});
         const level1 = thisLevels.next();
+        const level2 = thisLevels.next();
         // @ts-ignore
-        return level1.value && level1.value.length && isListNode(level1.value[0].type);
+        const level1Islist = level1.value && level1.value.length && isListNode(level1.value[0].type);
+        // @ts-ignore
+        const level2IsList = level2.value && level2.value.length && isListNode(level2.value[0].type);
+
+        // attempt to un-indent the item
+        // @ts-ignore
+        unIndentListItem(editor, isNumbered);
+
+        // if not nested item, unwrap the item
+        if (!level2IsList) {
+            // @ts-ignore
+            Transforms.unwrapNodes(editor, {match: n => isListNode(n.type), split: true});
+        }
+
+        return level2IsList;
     } else {
         const thisNodePath = thisPath.slice(0, thisPath.length - 1);
         const thisLeaf = Editor.leaf(editor, thisPath);
