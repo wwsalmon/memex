@@ -4,7 +4,11 @@ import {InlineMath} from "react-katex";
 import {CustomElement} from "./slate-types";
 import {Node} from "slate";
 
-export default function InlineTex({attributes, children, element}: {attributes: any, children: ReactNode, element: CustomElement}) {
+export default function InlineTex({
+                                      attributes,
+                                      children,
+                                      element
+                                  }: { attributes: any, children: ReactNode, element: CustomElement }) {
     const focused = useFocused();
     const selected = useSelected();
     const showSource = focused && selected;
@@ -13,18 +17,28 @@ export default function InlineTex({attributes, children, element}: {attributes: 
 
     let spanProps = {
         ...attributes,
-        className: "border p-1 " + (showSource ? "border-red-500" : "border-green-500"),
+        className: "relative p-1 " + (showSource ? "border border-gray-300" : ""),
     };
 
     if (!showSource) spanProps["contentEditable"] = false;
 
+    const isEmpty = math === "  ";
+
     return (
         <span {...spanProps}>
             {showSource ? (
-                children
+                <>
+                    {children}
+                    <div
+                        className="absolute bg-gray-100 top-0 border border-gray-300 font-bold"
+                        style={{fontSize: 8, padding: 2, transform: "translateY(-100%)", left: -1}}
+                    >
+                        <span>LaTeX</span>
+                    </div>
+                </>
             ) : (
-                <span contentEditable={false}>
-                    <InlineMath math={math || "\\LaTeX"}/>
+                <span contentEditable={false} className={isEmpty ? "opacity-25" : ""}>
+                    <InlineMath math={isEmpty ? "\\LaTeX" : math}/>
                 </span>
             )}
         </span>
