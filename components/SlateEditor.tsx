@@ -10,12 +10,15 @@ import {withCodeblocks} from "../utils/slate/codeblock";
 import {onEnter} from "../utils/slate/onEnter";
 import {onTabList, withLists} from "../utils/slate/list";
 import withDeserializeMD from "../utils/slate/withDeserializeMD";
+import "katex/dist/katex.min.css";
+import InlineTex from "../utils/slate/InlineTex";
+import withTex from "../utils/slate/withTex";
 
 export default function SlateEditor({value, setValue}: {
     value: SlateNode[],
     setValue: Dispatch<SetStateAction<SlateNode[]>>
 }) {
-    const [editor] = useState<ReactEditor & HistoryEditor>(withLists(withCodeblocks(withLinks(withShortcuts(withDeserializeMD(withHistory(withReact(createEditor() as ReactEditor))))))));
+    const [editor] = useState<ReactEditor & HistoryEditor>(withTex(withLists(withCodeblocks(withLinks(withShortcuts(withDeserializeMD(withHistory(withReact(createEditor() as ReactEditor)))))))));
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 
@@ -63,6 +66,8 @@ const Element = ({attributes, children, element}) => {
             return <a {...attributes} href={element.url}>{children}</a>;
         case "codeblock":
             return <pre {...attributes}><code>{children}</code></pre>;
+        case "inlineTex":
+            return <InlineTex attributes={attributes} element={element}>{children}</InlineTex>;
         default:
             return <p {...attributes}>{children}</p>;
     }
