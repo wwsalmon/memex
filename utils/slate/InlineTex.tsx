@@ -17,7 +17,7 @@ export default function InlineTex({
 
     let spanProps = {
         ...attributes,
-        className: "relative p-1 " + (showSource ? "border border-gray-300" : ""),
+        className: "relative px-1 " + (showSource ? "border border-gray-300 font-mono text-sm py-2" : ""),
     };
 
     if (!showSource) spanProps["contentEditable"] = false;
@@ -30,8 +30,9 @@ export default function InlineTex({
                 <>
                     {children}
                     <div
-                        className="absolute bg-gray-100 top-0 border border-gray-300 font-bold"
-                        style={{fontSize: 8, padding: 2, transform: "translateY(-100%)", left: -1}}
+                        contentEditable={false}
+                        className="absolute select-none bg-gray-100 top-0 border border-gray-300 font-bold"
+                        style={{fontSize: 8, paddingLeft: 2, paddingRight: 2, transform: "translateY(-100%)", left: -1}}
                     >
                         <span>LaTeX</span>
                     </div>
