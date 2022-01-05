@@ -2,7 +2,25 @@ import {CustomEditor} from "./slate-types";
 import {Editor, Element, Node, Point, Range, Transforms} from "slate";
 
 const withTex = (editor: CustomEditor) => {
-    const {insertText, isInline, normalizeNode} = editor;
+    const {insertText, isInline, normalizeNode, deleteBackward} = editor;
+
+    editor.deleteBackward = (unit) => {
+        const block = Editor.above(editor, {
+            match: n => Editor.isBlock(editor, n),
+        });
+
+        if (Element.isElement(block[0]) && block[0].type !== "inlineTex") {
+            const thisLeaf = Editor.leaf(editor, editor.selection.anchor.path);
+            const thisText = thisLeaf[0].text;
+
+            if (thisText === "  ") {
+                Transforms.removeNodes(editor, {at: thisLeaf[1].slice(0, thisLeaf[1].length - 1)});
+                return;
+            }
+        }
+
+        deleteBackward(unit);
+    }
 
     editor.isInline = (element) => {
         return element.type === "inlineTex" || isInline(element);
