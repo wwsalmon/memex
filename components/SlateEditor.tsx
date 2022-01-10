@@ -14,12 +14,31 @@ import "katex/dist/katex.min.css";
 import InlineTex from "../utils/slate/InlineTex";
 import withTex from "../utils/slate/withTex";
 import BlockTex from "../utils/slate/BlockTex";
+import withImages, {Image} from "../utils/slate/withImages";
 
 export default function SlateEditor({value, setValue}: {
     value: SlateNode[],
     setValue: Dispatch<SetStateAction<SlateNode[]>>
 }) {
-    const [editor] = useState<ReactEditor & HistoryEditor>(withTex(withLists(withCodeblocks(withLinks(withShortcuts(withDeserializeMD(withHistory(withReact(createEditor() as ReactEditor)))))))));
+    const [editor] = useState<ReactEditor & HistoryEditor>(
+        withImages(
+            withTex(
+                withLists(
+                    withCodeblocks(
+                        withLinks(
+                            withShortcuts(
+                                withDeserializeMD(
+                                    withHistory(
+                                        withReact(createEditor() as ReactEditor)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    );
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 
@@ -71,6 +90,8 @@ const Element = ({attributes, children, element}) => {
             return <InlineTex attributes={attributes} element={element}>{children}</InlineTex>;
         case "blockTex":
             return <BlockTex attributes={attributes} element={element}>{children}</BlockTex>;
+        case "img":
+            return <Image attributes={attributes} element={element}>{children}</Image>;
         default:
             return <p {...attributes}>{children}</p>;
     }

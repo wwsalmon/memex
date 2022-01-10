@@ -42,15 +42,7 @@ const withDeserializeMD = (editor: CustomEditor) => {
                 .processSync(content)
                 .result as Descendant[];
 
-            if (fragment.length) {
-                Transforms.insertNodes(editor, fragment);
-
-                if (isNodeEmpty(block[0])) {
-                    Transforms.removeNodes(editor, {at: block[1]});
-                }
-
-                return;
-            }
+            if (fragment.length) insertNodesAndClearEmpty(editor, fragment);
         }
 
         insertData(data);
@@ -63,6 +55,16 @@ export const isNodeEmpty = (node: Node) => {
     if (Text.isText(node)) return !node.text;
     if (Element.isElement(node)) return node.children.every(child => isNodeEmpty(child));
     else return true;
+}
+
+export const insertNodesAndClearEmpty = (editor: CustomEditor, nodes: Node | Node[]) => {
+    const block = Editor.above(editor, {match: n => Element.isElement(n), mode: "lowest"});
+
+    Transforms.insertNodes(editor, nodes);
+
+    if (isNodeEmpty(block[0])) {
+        Transforms.removeNodes(editor, {at: block[1]});
+    }
 }
 
 export default withDeserializeMD;
