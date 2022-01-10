@@ -32,16 +32,19 @@ const withTex = (editor: CustomEditor) => {
         const {path, offset} = anchor;
 
         if (offset > 0 && text === " " && selection && Range.isCollapsed(selection)) {
-            const range = {anchor, focus: {path: path, offset: offset - 1}};
-            const beforeText = Editor.string(editor, range);
+            const beforeText = Editor.string(editor, {anchor, focus: {path: path, offset: offset - 1}});
+            const twoBeforeText = offset > 1 ? Editor.string(editor, {
+                anchor: {path: path, offset: offset - 1},
+                focus: {path: path, offset: offset - 2}
+            }) : null;
 
-            if (beforeText === "$") {
+            if (beforeText === "$" && twoBeforeText !== "$") {
                 const block = Editor.above(editor, {
                     match: n => Editor.isBlock(editor, n),
                 });
 
                 if (Element.isElement(block[0]) && block[0].type !== "inlineTex") {
-                    Transforms.select(editor, range);
+                    Transforms.select(editor, {anchor, focus: {path: path, offset: offset - 1}});
                     Transforms.delete(editor);
                     Transforms.insertNodes(editor, [{type: "inlineTex", children: [{text: "  "}]}]);
                     const thisPoint = {path: editor.selection.anchor.path, offset: 1};

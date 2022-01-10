@@ -25,6 +25,7 @@ const mdShortcuts = {
     "######": "heading-six",
     "1.": "li", // but this is special case
     "```": "codeblock",
+    "$$": "blockTex",
 };
 
 export const withShortcuts = editor => {

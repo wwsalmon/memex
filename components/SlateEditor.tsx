@@ -13,6 +13,7 @@ import withDeserializeMD from "../utils/slate/withDeserializeMD";
 import "katex/dist/katex.min.css";
 import InlineTex from "../utils/slate/InlineTex";
 import withTex from "../utils/slate/withTex";
+import BlockTex from "../utils/slate/BlockTex";
 
 export default function SlateEditor({value, setValue}: {
     value: SlateNode[],
@@ -68,6 +69,8 @@ const Element = ({attributes, children, element}) => {
             return <pre {...attributes}><code>{children}</code></pre>;
         case "inlineTex":
             return <InlineTex attributes={attributes} element={element}>{children}</InlineTex>;
+        case "blockTex":
+            return <BlockTex attributes={attributes} element={element}>{children}</BlockTex>;
         default:
             return <p {...attributes}>{children}</p>;
     }
