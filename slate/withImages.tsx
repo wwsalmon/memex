@@ -13,7 +13,7 @@ const withImages = (editor: CustomEditor) => {
         const {files} = data;
 
         if (files && files.length) {
-            for (const file of files) {
+            for (const file of Array.from(files)) {
                 const reader = new FileReader();
                 const [mime] = file.type.split("/");
 
