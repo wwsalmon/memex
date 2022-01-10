@@ -15,20 +15,18 @@ export default function InlineTex({
 
     const math = Node.string(element);
 
-    let spanProps = {
+    let divProps = {
         ...attributes,
-        className: "relative px-1 " + (showSource ? "border border-gray-300 font-mono text-sm py-2" : ""),
+        className: "relative inline px-1 " + (showSource ? "border border-gray-300 py-2" : ""),
     };
-
-    if (!showSource) spanProps["contentEditable"] = false;
 
     const isEmpty = math === "  ";
 
     return (
-        <span {...spanProps}>
-            {showSource ? (
-                <>
-                    {children}
+        <div {...divProps}>
+            <span className={"font-mono text-sm " + (showSource ? "" : "text-center absolute top-1/2 left-0 -translate-y-1/2 w-full opacity-0")}>
+                {children}
+                {showSource && (
                     <div
                         contentEditable={false}
                         className="absolute select-none bg-gray-100 top-0 border border-gray-300 font-bold"
@@ -36,12 +34,13 @@ export default function InlineTex({
                     >
                         <span>LaTeX</span>
                     </div>
-                </>
-            ) : (
-                <span contentEditable={false} className={isEmpty ? "opacity-25" : ""}>
+                )}
+            </span>
+            {!showSource && (
+                <span contentEditable={false} className={"pointer-events-none " + (isEmpty ? "opacity-25" : "")}>
                     <InlineMath math={isEmpty ? "\\LaTeX" : math}/>
                 </span>
             )}
-        </span>
+        </div>
     );
 }
