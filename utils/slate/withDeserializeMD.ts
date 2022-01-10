@@ -9,7 +9,7 @@ const withDeserializeMD = (editor: CustomEditor) => {
 
     editor.insertData = (data) => {
         const block = Editor.above(editor, {match: n => Element.isElement(n), mode: "lowest"});
-        const noDeserialize = block && Element.isElement(block[0]) && ["codeblock", "inlineTex"].includes(block[0].type);
+        const noDeserialize = block && Element.isElement(block[0]) && ["codeblock", "inlineTex", "blockTex"].includes(block[0].type);
         if (noDeserialize) return insertData(data);
 
         const content = data.getData("text/plain");
