@@ -1,10 +1,10 @@
 import isUrl from "is-url";
 import {Editor, Element, Range, Transforms,} from "slate";
-import {SlateNode} from "../types";
+import {SlateNode} from "../utils/types";
 import {useEffect, useRef, useState} from "react";
 import {ReactEditor, useSlate} from "slate-react";
 import ReactDOM from "react-dom";
-import Button from "../../components/Button";
+import Button from "../components/Button";
 import {FiEdit2} from "react-icons/fi";
 import {BiUnlink} from "react-icons/bi";
 import normalizeUrl from "normalize-url";

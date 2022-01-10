@@ -4,7 +4,7 @@ import Card from "./style/Card";
 import H3 from "./style/H3";
 import Badge from "./style/Badge";
 import {getBgClassFromType, getLetterFromType} from "../utils/getInfoFromType";
-import slateWordCount from "../utils/slateWordCount";
+import slateWordCount from "../slate/slateWordCount";
 
 const NodeCard = ({node}: {node: DatedObj<NodeObj> & { linksArr: DatedObj<ParentLinkObj>[]}}) => (
     <Button href={`/node/${node._id}`}>

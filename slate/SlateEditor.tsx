@@ -3,18 +3,18 @@ import {createEditor} from "slate";
 import {HistoryEditor, withHistory} from "slate-history";
 import {Dispatch, SetStateAction, useCallback, useState} from "react";
 import {SlateNode} from "../utils/types";
-import {SlateLinkBalloon, withLinks} from "../utils/slate/link";
-import {withShortcuts} from "../utils/slate/shortcuts";
-import {onHotkey} from "../utils/slate/hotkeys";
-import {withCodeblocks} from "../utils/slate/codeblock";
-import {onEnter} from "../utils/slate/onEnter";
-import {onTabList, withLists} from "../utils/slate/list";
-import withDeserializeMD from "../utils/slate/withDeserializeMD";
+import {SlateLinkBalloon, withLinks} from "./link";
+import {withShortcuts} from "./shortcuts";
+import {onHotkey} from "./hotkeys";
+import {withCodeblocks} from "./codeblock";
+import {onEnter} from "./onEnter";
+import {onTabList, withLists} from "./list";
+import withDeserializeMD from "./withDeserializeMD";
 import "katex/dist/katex.min.css";
-import InlineTex from "../utils/slate/InlineTex";
-import withTex from "../utils/slate/withTex";
-import BlockTex from "../utils/slate/BlockTex";
-import withImages, {Image} from "../utils/slate/withImages";
+import InlineTex from "./InlineTex";
+import withTex from "./withTex";
+import BlockTex from "./BlockTex";
+import withImages, {Image} from "./withImages";
 
 export default function SlateEditor({value, setValue}: {
     value: SlateNode[],

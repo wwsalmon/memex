@@ -1,5 +1,5 @@
 import {Editor, Element, Element as SlateElement, Point, Range, Transforms} from "slate";
-import {SlateNode} from "../types";
+import {SlateNode} from "../utils/types";
 import {onDeleteBackwardsList, onShortcutSpaceList} from "./list";
 
 export type BulletedListElement = {

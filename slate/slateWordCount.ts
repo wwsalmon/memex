@@ -1,4 +1,4 @@
-import {SlateNode, SlateText} from "./types";
+import {SlateNode, SlateText} from "../utils/types";
 
 export default function slateWordCount(body: (SlateNode | SlateText)[]) {
     let length = 0;
