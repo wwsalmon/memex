@@ -2,6 +2,7 @@ import {CustomEditor} from "./slate-types";
 import {Descendant, Editor, Element, Transforms} from "slate";
 import {unified} from "unified";
 import markdown from "remark-parse";
+import math from "remark-math";
 import slate from "remark-slate";
 
 const withDeserializeMD = (editor: CustomEditor) => {
@@ -16,6 +17,7 @@ const withDeserializeMD = (editor: CustomEditor) => {
         if (content) {
             const fragment = unified()
                 .use(markdown)
+                .use(math)
                 .use(slate, {
                     nodeTypes: {
                         paragraph: "p",
