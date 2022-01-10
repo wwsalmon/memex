@@ -19,7 +19,7 @@ export default function BlockTex({
 
     let divProps = {
         ...attributes,
-        className: "relative px-1 " + (showSource ? "border border-gray-300 font-mono text-sm py-2 text-center " : (isEmpty ? "opacity-25" : "")),
+        className: "relative px-1 overflow-x-auto " + (showSource ? "border border-gray-300 font-mono text-sm py-2 text-center " : (isEmpty ? "opacity-25" : "")),
     };
 
     if (!showSource) divProps["contentEditable"] = false;
