@@ -1,5 +1,5 @@
 import {CustomEditor} from "./slate-types";
-import {Descendant, Editor, Element, Transforms} from "slate";
+import {Descendant, Editor, Element, Node, Text, Transforms} from "slate";
 import {unified} from "unified";
 import markdown from "remark-parse";
 import math from "remark-math";
@@ -42,10 +42,14 @@ const withDeserializeMD = (editor: CustomEditor) => {
                 .processSync(content)
                 .result as Descendant[];
 
-            console.log(fragment);
-
             if (fragment.length) {
-                return Transforms.insertNodes(editor, fragment);
+                Transforms.insertNodes(editor, fragment);
+
+                if (isNodeEmpty(block[0])) {
+                    Transforms.removeNodes(editor, {at: block[1]});
+                }
+
+                return;
             }
         }
 
@@ -54,5 +58,11 @@ const withDeserializeMD = (editor: CustomEditor) => {
 
     return editor;
 };
+
+const isNodeEmpty = (node: Node) => {
+    if (Text.isText(node)) return !node.text;
+    if (Element.isElement(node)) return node.children.every(child => isNodeEmpty(child));
+    else return true;
+}
 
 export default withDeserializeMD;
