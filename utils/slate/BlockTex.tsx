@@ -15,14 +15,14 @@ export default function BlockTex({
 
     const math = Node.string(element);
 
+    const isEmpty = math === "";
+
     let divProps = {
         ...attributes,
-        className: "relative px-1 " + (showSource ? "border border-gray-300 font-mono text-sm py-2 text-center" : ""),
+        className: "relative px-1 " + (showSource ? "border border-gray-300 font-mono text-sm py-2 text-center " : (isEmpty ? "opacity-25" : "")),
     };
 
     if (!showSource) divProps["contentEditable"] = false;
-
-    const isEmpty = math === "  ";
 
     return (
         <div {...divProps}>
@@ -38,7 +38,7 @@ export default function BlockTex({
                     </div>
                 </>
             ) : (
-                <BlockMath math={isEmpty ? "\\LaTeX" : math} className={isEmpty ? "opacity-25" : ""}/>
+                <BlockMath math={isEmpty ? "\\LaTeX" : math}/>
             )}
         </div>
     );
