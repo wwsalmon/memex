@@ -25,7 +25,7 @@ import {format} from "date-fns";
 import Badge from "../../components/style/Badge";
 import {getBgClassFromType, getLetterFromType} from "../../utils/getInfoFromType";
 import Link from "next/link";
-import SlateEditor from "../../slate/SlateEditor";
+import SlateEditor, {SlateReadOnly} from "../../slate/SlateEditor";
 import {useAutosave} from "react-autosave";
 import slateWordCount from "../../slate/slateWordCount";
 import {Menu} from "@headlessui/react";
@@ -63,6 +63,7 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+    const [isReadOnly, setIsReadOnly] = useState<boolean>(false);
 
     const prevTitle = thisNode.title || `Untitled ${thisNode.type}`;
 
@@ -224,12 +225,23 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                                             <Menu.Item>
                                                 {({active}) => (
                                                     <Button
-                                                        className="bg-white px-4 py-3 text-sm rounded hover:bg-gray-50"
+                                                        className="bg-white px-4 py-3 text-sm rounded hover:bg-gray-50 w-full"
                                                         childClassName="flex items-center"
                                                         onClick={() => setIsDeleteOpen(true)}
                                                     >
                                                         <FiTrash className="mr-2"/>
                                                         <span>Delete</span>
+                                                    </Button>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({active}) => (
+                                                    <Button
+                                                        className="bg-white px-4 py-3 text-sm rounded hover:bg-gray-50 w-full"
+                                                        childClassName="flex items-center"
+                                                        onClick={() => setIsReadOnly(!isReadOnly)}
+                                                    >
+                                                        <span className="whitespace-nowrap">Toggle read only</span>
                                                     </Button>
                                                 )}
                                             </Menu.Item>
@@ -261,7 +273,11 @@ export default function Node(props: { thisNode: DatedObj<NodeObj>, thisNodeLinks
                     </div>
                     {thisNode.type === "note" && (
                         <>
-                            <SlateEditor value={value} setValue={setValue}/>
+                            {isReadOnly ? (
+                                <SlateReadOnly value={value}/>
+                            ) : (
+                                <SlateEditor value={value} setValue={setValue}/>
+                            )}
                             <p className="text-sm text-gray-500">{wordCountAndTime}</p>
                         </>
                     )}

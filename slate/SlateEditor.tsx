@@ -16,29 +16,29 @@ import withTex from "./withTex";
 import BlockTex from "./BlockTex";
 import withImages, {Image} from "./withImages";
 
-export default function SlateEditor({value, setValue}: {
-    value: SlateNode[],
-    setValue: Dispatch<SetStateAction<SlateNode[]>>
-}) {
-    const [editor] = useState<ReactEditor & HistoryEditor>(
-        withImages(
-            withTex(
-                withLists(
-                    withCodeblocks(
-                        withLinks(
-                            withShortcuts(
-                                withDeserializeMD(
-                                    withHistory(
-                                        withReact(createEditor() as ReactEditor)
-                                    )
-                                )
+const customSlateEditor = withImages(
+    withTex(
+        withLists(
+            withCodeblocks(
+                withLinks(
+                    withShortcuts(
+                        withDeserializeMD(
+                            withHistory(
+                                withReact(createEditor() as ReactEditor)
                             )
                         )
                     )
                 )
             )
         )
-    );
+    )
+);
+
+export default function SlateEditor({value, setValue}: {
+    value: SlateNode[],
+    setValue: Dispatch<SetStateAction<SlateNode[]>>
+}) {
+    const [editor] = useState<ReactEditor & HistoryEditor>(customSlateEditor);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 
@@ -59,6 +59,26 @@ export default function SlateEditor({value, setValue}: {
                     }}
                 />
                 <SlateLinkBalloon/>
+            </Slate>
+        </div>
+    );
+}
+
+export function SlateReadOnly({value}: {value: SlateNode[]}) {
+    const [editor] = useState<ReactEditor & HistoryEditor>(customSlateEditor);
+    const renderElement = useCallback(props => <Element {...props} />, []);
+    const renderLeaf = useCallback(props => <Leaf {...props} />, []);
+
+    return (
+        <div className="prose" style={{fontSize: 20}}>
+            {/* @ts-ignore */}
+            <Slate editor={editor} value={value}>
+                <Editable
+                    readOnly={true}
+                    renderElement={renderElement}
+                    renderLeaf={renderLeaf}
+                    placeholder="Nothing written here!"
+                />
             </Slate>
         </div>
     );
