@@ -59,7 +59,7 @@ const withDeserializeMD = (editor: CustomEditor) => {
     return editor;
 };
 
-const isNodeEmpty = (node: Node) => {
+export const isNodeEmpty = (node: Node) => {
     if (Text.isText(node)) return !node.text;
     if (Element.isElement(node)) return node.children.every(child => isNodeEmpty(child));
     else return true;

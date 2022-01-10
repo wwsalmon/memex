@@ -3,6 +3,7 @@ import {HistoryEditor} from "slate-history";
 import {Editor, Element, Node, Path, Point, Text, Transforms} from "slate";
 import insertEmptyLine from "./insertEmptyLine";
 import {KeyboardEvent} from "react";
+import {isNodeEmpty} from "./withDeserializeMD";
 
 export const onShortcutSpaceList = (editor: ReactEditor & HistoryEditor, type: string, isNumbered: boolean) => {
     const isList = type === "li";
@@ -200,6 +201,18 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
     editor.normalizeNode = (entry) => {
         const [thisNode, thisPath] = entry;
 
+        // console.log("normalizing", thisPath, thisNode);
+
+        // remove empty lists
+        if (Element.isElement(thisNode) && isListNode(thisNode.type) && thisNode.children.every(d => (Element.isElement(d) ? d.type !== "li" : Text.isText(d) && d.text === "") && isNodeEmpty(d))) {
+            // console.log("found empty list");
+            if (JSON.stringify(thisPath) === "[0]") {
+                return Transforms.setNodes(editor, {type: "p"}, {at: thisPath})
+            } else {
+                return Transforms.removeNodes(editor, {at: thisPath});
+            }
+        }
+
         // unwrap block
         if (Element.isElement(thisNode) && thisNode.type === "li") {
             // console.log("considering list item", thisPath);
@@ -224,7 +237,7 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
 
                         Transforms.unwrapNodes(editor, {at: [...thisPath, +childIndex, 0], match: (node, path) => {
                                 const isMatch = Element.isElement(node) && node.type === thisChild.type && JSON.stringify(path) === JSON.stringify([...thisPath, +childIndex]);
-                                console.log(isMatch, node, path);
+                                // console.log(isMatch, node, path);
                                 return isMatch;
                             }});
                         return;
@@ -236,7 +249,7 @@ export const withLists = (editor: ReactEditor & HistoryEditor) => {
         // console.log("normalizing", thisPath, thisNode);
 
         // if element has children that are lists
-        if ("children" in thisNode && thisNode.children.length && thisNode.children.some(d => Element.isElement(d) && isListNode(d.type))) {
+        if (Element.isElement(thisNode) && thisNode.children.length && thisNode.children.some(d => Element.isElement(d) && isListNode(d.type))) {
             // console.log("has children lists");
 
             for (let childIndex in thisNode.children) {
